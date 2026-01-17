@@ -1,0 +1,101 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "saed"
+version = "0.1.0"
+description = "LLM-based Semantic Annotation"
+authors = [
+    { name = "Keni Chen" },
+    { name = "Mou YongLi" },
+    { name = "Zhiyu Pan" },
+    { name = "Fengshuo Hao" },
+    { name = "Stefan Decker" },
+    { name = "Antonello Monti" },
+]
+license = "MIT"
+readme = "README.md"
+requires-python = "==3.12.*"
+keywords = ["semantic-annotation", "llm", "energy-data", "ontology"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    # Core
+    "numpy>=1.26.4",
+    "pandas>=2.2.0",
+    # LLM
+    "langchain>=0.3.0",
+    "langchain-community>=0.3.0",
+    "langchain-core>=0.3.0",
+    "langchain-ollama>=0.2.0",
+    "langchain-openai>=0.3.0",
+    "langchain-litellm>=0.3.2",
+    # Ontology
+    "owlready2>=0.47",
+    # API
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "python-multipart>=0.0.12",
+    # Data validation
+    "pydantic>=2.9.0",
+    "tabulate>=0.9.0",
+    # Config
+    "pyyaml>=6.0",
+    "matplotlib>=3.10.8",
+]
+
+[project.urls]
+Homepage = "https://github.com/KeniChen/Master-Thesis"
+Repository = "https://github.com/KeniChen/Master-Thesis"
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.8.0",
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "httpx>=0.27.0",
+]
+
+[project.scripts]
+saed-api = "saed.api.main:main"
+saed-run = "saed.cli.run:main"
+saed-run-batch = "saed.cli.batch:main"
+saed-eval = "saed.cli.eval:main"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.8.0",
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "httpx>=0.27.0",
+]
+
+[tool.uv]
+default-groups = ["dev"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/saed"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["saed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --tb=short"

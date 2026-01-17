@@ -1,0 +1,79 @@
+# ====================
+# OS
+# ====================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+
+# ====================
+# IDE / Editor
+# ====================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ====================
+# Python
+# ====================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# ====================
+# Node.js / Next.js
+# ====================
+node_modules/
+.pnpm-store/
+.next/
+out/
+.turbo/
+*.tsbuildinfo
+next-env.d.ts
+pnpm-debug.log*
+npm-debug.log*
+
+# ====================
+# Environment
+# ====================
+.env
+.env.local
+.env*.local
+
+# ====================
+# Data (optional)
+# ====================
+# Uncomment if you don't want to commit data files
+data/config.json
+data/tables/real/*
+data/tables/real/registry.json
+data/labels/real/*
+data/labels/real/registry.json
+data/batches/*
+data/batches/registry.json
+data/runs/*
+
+
+# Ignore experiment run outputs, but keep batch.yaml configs
+experiments/*/run_*.json
+experiments/*/batch_*.json
+experiments/*/batch_*.csv
+
+.history/

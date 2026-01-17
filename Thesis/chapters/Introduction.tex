@@ -1,0 +1,180 @@
+% =============================================================================
+% Chapter 1: Introduction
+% =============================================================================
+
+\chapter{Introduction}
+\label{chap:introduction}
+
+% -----------------------------------------------------------------------------
+% Section 1.1: Background and Motivation
+% -----------------------------------------------------------------------------
+\section{Background and Motivation}
+\label{sec:background_motivation}
+The contemporary digital ecosystem is no longer constrained by a lack of information, but by a fragmentation of meaning. 
+Organizations continuously generate and retain massive volumes of tabular artifacts, ranging from spreadsheets, CSVs, and HTML tables to massive data-lake deposits. 
+The practical difficulty has shifted from collecting data to making it interoperable. 
+At Web scale, this fragmentation is particularly stark: large-scale measurements consistently show that the Web contains an enormous number of HTML tables, including a substantial subset of high-quality relational tables. Collectively, they form a vast corpus of independently authored micro-databases, each governed by its own local schema and naming conventions~\cite{cafarella2008webtables}.
+
+This abundance creates a paradox: as data volumes grow, integration becomes harder due to the core obstacle, i.e., semantic heterogeneity.
+Even when sources describe the same real-world concept, they often encode it with incompatible schemas, labels, units, and implicit assumptions, a phenomenon long recognized as a central barrier in data integration~\cite{halevy2005your}.
+On the Web, hundreds of millions of tables function as independently authored "micro-databases", each governed by ad-hoc schemas. 
+Similarly, in enterprise settings, the same dynamic causes repositories to devolve into "data islands" or opaque "data swamps", where datasets remain physically accessible but semantically disconnected from the analytical and governance infrastructure required to reliably discover, join, and operationalize them~\cite{hai2023data}.
+
+To resolve this, a key missing layer is semantic annotation, i.e., the process of attaching machine-interpretable meaning (e.g., ontology classes, properties, and units) to table elements. This step is critical to transforming raw tabular dumps into discoverable, joinable, and operational assets.
+
+% -----------------------------------------------------------------------------
+% Subsection 1.1.1: The Role of Semantic Annotation
+% -----------------------------------------------------------------------------
+\subsection{The Role of Semantic Annotation}
+\label{subsec:role_semantic_annotation}
+The importance of semantic annotation can be understood through three mutually reinforcing pillars.
+
+\paragraph{Breaking data silos via data integration}
+Data integration remains a fundamental challenge, as  effective analysis often requires querying across multiple autonomous sources whose schemas and conventions were designed independently~\cite{halevy2006data}. 
+In practice, the problem is exacerbated by “long-tail heterogeneity”, i.e., a phenomenon characterized by a vast number of ad-hoc tables using inconsistent, abbreviated, or domain-specific naming conventions. 
+For instance, a temperature reading might be labeled \texttt{Zone\_T} in one system and \texttt{RoomTemp} in another. Without explicit semantic mapping to a standardized ontology, e.g., linking both to the \textit{Temperature} concept in SAREF~\cite{daniele2020saref}, these datasets remain computationally incompatible.
+Consequently, standardized semantic models serve as the critical bridge to resolve such terminological discrepancies by providing the shared concepts and relations necessary for cross-domain interoperability.
+
+\paragraph{Automating knowledge production}
+Web tables and enterprise spreadsheets contain vast amounts of structured facts, but they are not knowledge until they are grounded in a controlled vocabulary: entities, types, and relations.
+Classic work on web table annotation showed that labeling table cells with entities and columns with types and relations is central to turning raw tables into a queryable, expandable knowledge base~\cite{limaye2010annotating}. Subsequent efforts on matching web tables to knowledge bases (KBs), e.g., DBpedia, further demonstrate that schema- and entity-level correspondences are prerequisites for KB extension at scale~\cite{ritze2015matching}.
+
+\paragraph{Enabling downstream applications}
+Semantic annotation unlocks the discoverability and composability of tabular data. 
+Instead of relying on brittle lexical matches (e.g., searching for exact strings like \texttt{kWh} or \texttt{E\_use}), users can query based on conceptual meaning (e.g., \textit{Energy Consumption}).
+The semantic layer is foundational for data discovery engines and interactive analytics pipelines, which depend on accurate type inference to locate and process relevant datasets~\cite{fernandez2016towards}. 
+Furthermore, for downstream tasks like Table Question Answering (TableQA), such grounding is essential, as it enables systems to reliably interpret table fields, thereby making it feasible to answer compositional questions over semi-structured data~\cite{pasupat2015compositional}.
+
+% -----------------------------------------------------------------------------
+% Subsection 1.1.2: Limitations of Traditional Approaches
+% -----------------------------------------------------------------------------
+\subsection{Limitations of Traditional Approaches}
+\label{subsec:limitations_traditional}
+
+Despite its critical importance, achieving high-quality semantic annotation for real-world domain-specific tables remains a significant challenge. 
+Current practices predominantly rely on manual curation, requiring domain experts to subjectively align table columns with ontology classes. 
+However, this paradigm is inherently labor-intensive and scales poorly with schema evolution or the ingestion of heterogeneous data. 
+Furthermore, manual annotation is susceptible to inter-annotator inconsistency, particularly in domains characterized by fine-grained conceptual distinctions (e.g., subtle variations in sensor data).
+Consequently, there is a increasing need for automated frameworks and tools capable of augmenting human effort while ensuring accuracy and interpretability.
+
+While early automation attempts sought to mitigate manual effort, traditional approaches have shown limited efficacy. These can be broadly categorized into: rule-based systems, which struggle with the rigidity of hard-coded logic; string- and similarity-based matching, which often fail to capture semantic nuances beyond lexical overlap; and classical machine learning, which relies heavily on labor-intensive feature engineering. Consequently, these methods often fall short in generalization and scalability.
+
+\paragraph{Rule-based Approaches.} Early attempts at semantic annotation primarily relied on rigid, heuristic-driven frameworks. These methods typically employ regular expressions, keyword lookups, or direct matching against encyclopedic dictionaries to identify column types. For instance, Venetis et al. (2011) proposed a scalable framework that assigns class labels by leveraging a database of class-instance pairs extracted from the web, effectively relying on maximum likelihood estimators over exact string matches~\cite{venetis2011recovering}. Similarly, Ritze et al. (2015) introduced the T2K Match framework, which initiates the matching process by utilizing similar lookup-based techniques to find candidate entities in DBpedia~\cite{ritze2015matching}. While these approaches offer high precision for standardized data, they suffer from low recall and extreme brittleness; they lack the flexibility to handle the semantic ambiguity, abbreviations, or dirty data prevalent in real-world scenarios.
+
+\paragraph{String- and Similarity-based Matching.} To overcome the limitations of exact matching, subsequent research shifted towards similarity-based techniques that quantify the lexical overlap between table cell values and Knowledge Base (KB) entities. Pioneering works like Limaye et al. (2010) formulated the annotation task as a probabilistic optimization problem, modeling the dependencies between cell values, column types, and relations using rigorous scoring functions based on string similarity~\cite{limaye2010annotating}. Mulwad et al. (2013) further advanced this by introducing Semantic Message Passing, which incorporates identifying evidence from external sources (e.g., Wikitology) to compute similarity scores~\cite{mulwad2013semantic}. However, these methods rely heavily on lexical surface forms. They often fail to capture semantic relatedness when handling synonyms, polysemes, or domain-specific jargon where the string distance does not reflect semantic proximity (the "semantic gap").
+
+
+\paragraph{Classical Machine Learning Approaches.} Recognizing the complexity of table structures, researchers began employing supervised learning models that rely on extensive manual feature engineering. These approaches extract a wide array of statistical, lexical, and structural features, such as character distribution, average word length, and symbol frequency—to train classifiers like Random Forests, Support Vector Machines (SVMs), or Conditional Random Fields (CRFs). Pham et al. (2016), for example, demonstrated that integrating such engineered features allows for more robust semantic labeling compared to heuristic baselines~\cite{pham2016semantic}. More recently, the Sherlock (Hulsebos et al., 2019) benchmark systematized this paradigm by extracting 1,588 distinct features to train deep neural networks~\cite{hulsebos2019sherlock}. Parallel to this, Chen et al. (2019) proposed ColNet, which moved towards automated feature learning by employing Convolutional Neural Networks (CNNs) over word embeddings~\cite{chen2019colnet}. Despite their improved performance, these methods remain fundamentally constrained by the labor-intensive nature of feature selection and their inability to generalize to domains where the predefined features fail to capture latent semantic signals.
+
+% -----------------------------------------------------------------------------
+% Section 1.2: Opportunities and Challenges
+% -----------------------------------------------------------------------------
+\section{Opportunities and Challenges}
+\label{sec:opportunity_challenges}
+
+% -----------------------------------------------------------------------------
+% Subsection 1.2.1: The Rise of Pre-trained Models
+% -----------------------------------------------------------------------------
+\subsection{The Rise of Pre-trained and Large Language Models}
+\label{subsec:rise_llm}
+
+Over the past few years, the landscape of semantic annotation has been fundamentally reshaped by the advent of Pre-trained Language Models (PLMs) and Large Language Models (LLMs). 
+Built upon the Transformer architecture~\cite{vaswani2017attention} and pre-trained on massive textual corpora, these models exhibit strong contextual understanding and generalization capabilities. 
+This paradigm shift has led to the emergence of foundation models pretraining for table understanding, where models are explicitly designed to capture the interplay between tabular structure and textual content. 
+Yin et al. (2020) introduced TaBERT, a pioneering framework that jointly learns representations for natural language sentences and tables by linearizing table rows to capture context~\cite{yin2020tabert}. 
+Building on this, Deng et al. (2022) proposed TURL, a structure-aware Transformer that enhances representation learning by incorporating explicit row-column masking and visibility matrices during the pre-training phase, significantly outperforming traditional feature-engineering methods~\cite{deng2022turl}.
+In the specific context of semantic column annotation, these pre-trained representations have proven highly effective. 
+Suhara et al. (2022) demonstrated that standard PLMs (such as BERT) can be effectively fine-tuned for column type prediction~\cite{suhara2022annotating}. 
+
+% -----------------------------------------------------------------------------
+% Subsection 1.2.2: Limitations of LLMs
+% -----------------------------------------------------------------------------
+\subsection{Limitations of LLMs} 
+Despite their remarkable success, the naive application of LLMs to semantic annotation presents significant challenges, particularly for reliable production deployment:
+\begin{itemize}
+    \item \textbf{Hallucination:} LLMs are known to generate plausible but incorrect information. When asked to map a column to an ontology, an unconstrained LLM might invent a label that sounds reasonable but does not exist in the target ontology.
+    
+    \item \textbf{Inconsistency:} LLM outputs can be stochastic. The same input might yield different ontology classes across repeated runs, introducing instability that complicates downstream integration.
+    
+    \item \textbf{Lack of Structural Guarantees:} Standard LLM interfaces do not inherently respect the strict structure of an ontology. There is no guarantee that generated paths will adhere to the ontology's Directed Acyclic Graph (DAG) constraints, such as valid parent-child relationships.
+    
+    \item \textbf{Cost and Latency:} High-quality models can be expensive to query at scale. System designers must navigate the trade-off between annotation accuracy and token usage, rate limits, and system responsiveness.
+\end{itemize}
+
+These observations highlight a central tension: while LLMs provide a promising semantic engine for interpreting heterogeneous domain tables, their raw behavior is insufficient for robust, ontology-driven annotation due to hallucinations, inconsistency, and a lack of structural guarantees. Bridging this gap requires not merely clever prompting, but a carefully engineered system that combines LLMs-based semantic judgments with ontology-aware constraints, rigorous decision-making mechanisms, and observable, reproducible workflows. Designing such a system, and evaluating its behavior in a realistic domain setting, constitutes the core motivation of this thesis.
+
+% -----------------------------------------------------------------------------
+% Section 1.3: Research Objectives and Questions
+% -----------------------------------------------------------------------------
+\section{Research Objectives and Questions}
+\label{sec:research_objectives_questions}
+
+This thesis investigates how to build a \emph{reliable} and \emph{deployable} semantic annotation system for real-world energy domain tables.
+The key idea is to \emph{recast} the LLMs from an open-ended label generator into a \emph{bounded decision engine} that performs \emph{local, ontology-aware navigation}.
+Concretely, rather than asking the model to directly output an ontology class (which invites hallucination and structural invalidity), we constrain the decision space to valid nodes/edges in a target ontology (modeled as a DAG) and guide the search with a structured traversal procedure (e.g., BFS-style exploration over candidate concepts).
+
+
+% -----------------------------------------------------------------------------
+% Subsection 1.3.1: Overall Goal
+% -----------------------------------------------------------------------------
+\subsection{Overall Goal}
+\label{subsec:overall_goal}
+The overall goal of this thesis is to construct and evaluate an end-to-end ontology-driven semantic annotation system that uses LLMs as decision making modules to support constrained traversal in a structured ontology, producing annotations that are:
+(i) accurate and ontology-valid,
+(ii) reproducible and robust under uncertainty,
+and (iii) practical under real deployment constraints (cost and latency).
+
+% -----------------------------------------------------------------------------
+% Subsection 1.3.2: Research Questions
+% -----------------------------------------------------------------------------
+\subsection{Research Questions}
+\label{subsec:research_questions}
+To operationalize this goal, we formulate three research questions (RQs) that correspond to \emph{effectiveness}, \emph{robustness}, and \emph{cost-utility tradeoffs}.
+
+\paragraph{RQ1: System effectiveness (feasibility and accuracy).}
+\textbf{Can constrained, ontology-aware navigation improve semantic annotation quality compared to unconstrained generation?}
+This RQ examines whether transforming the LLMs into a \emph{local navigator}---selecting among a bounded set of ontology-consistent candidates at each step under a traversal policy---(a) increases annotation accuracy and (b) reduces invalid outputs (e.g., non-existent labels or structurally impossible mappings) by construction.
+
+\paragraph{RQ2: Engineering robustness (stability and reliability).}
+\textbf{How can we mitigate stochasticity, hallucination tendencies, and context limitations of LLMs in a production-oriented pipeline?}
+Building on the instability concerns in Section~\ref{subsec:rise_llm}, this RQ studies auxiliary mechanisms that make the system behavior more stable and auditable.
+In particular, we explore an \textbf{Ensemble Decision Making (EDM)} strategy, where multiple independent judgments (e.g., via repeated queries, prompt variants, or heterogeneous models) are aggregated through a voting/consensus mechanism to (a) reduce variance across runs and (b) improve robustness when evidence is weak or ambiguous.
+
+\paragraph{RQ3: Cost-utility tradeoff (deployment practicality).}
+\textbf{What is the best balance between annotation quality, API cost (token consumption), and latency in realistic deployments?}
+High-performing LLMs can be costly and slow at scale.
+This RQ evaluates system configurations under different resource budgets by comparing, for example, (i) stronger proprietary models versus local/open-source backends (e.g., via Ollama), and (ii) ensemble-based decision policies versus single-shot/direct inference.
+The outcome is a set of empirical guidelines that help practitioners choose a configuration that matches their accuracy targets and operational constraints.
+
+
+
+% =============================================================================
+% Section 1.4: Thesis Structure
+% =============================================================================
+
+\section{Thesis Structure}
+\label{sec:thesis_structure}
+
+The remainder of this thesis is structured to logically progress from theoretical foundations to system design, implementation, and empirical evaluation:
+
+\begin{description}
+    % Chapter 2
+    \item[Chapter~\ref{chap:preliminaries} - Preliminaries] establishes the theoretical foundation. It introduces ontology and knowledge representation using OWL/RDF and the DAG abstraction for hierarchical class structures, with emphasis on energy domain ontologies. It then formalizes the tabular data model, including table structure, column context extraction, and the three semantic annotation tasks (CEA, CPA, CTA). Finally, it surveys Large Language Models, covering transformer architecture, pre-training paradigms, in-context learning, and their role as semantic reasoning engines.
+
+    % Chapter 3
+    \item[Chapter~\ref{chap:related_work} - Related Work] contextualizes this research within the broader academic landscape. It surveys semantic table interpretation and annotation, traces the evolution of column type annotation from feature engineering to representation learning, and examines ontology-aware search under structural constraints. The chapter then reviews the emerging role of Large Language Models in table annotation and knowledge engineering, and concludes with prompt engineering and constrained generation techniques for reliable outputs.
+
+    % Chapter 4
+    \item[Chapter~\ref{chap:semantic_annotation_approaches} - Semantic Annotation Approaches] details the semantic annotation approach. It formalizes the Column Type Annotation (CTA) problem, presents the Ontology-Driven Breadth-First Search (BFS) traversal algorithm that constrains LLM decisions to valid ontology candidates, describes Chain-of-Thought (CoT) prompt engineering for eliciting structured reasoning, and introduces the LLM-based Ensemble Decision-Making (EDM) mechanism for aggregating multiple agent judgments via consensus voting.
+
+    % Chapter 5
+    \item[Chapter~\ref{chap:system_architecture_implementation} - System Architecture and Implementation] presents the platform architecture and implementation. It describes the four-layer architecture (Web Interface, API Gateway, Core Engine, Data Layer) and details core components including ontology management, table processing, the annotation engine, and the evaluation module. It also covers traceability and observability features for execution logging and real-time monitoring, and documents the implementation details including technology stack, Command-Line Interface, Web Interface, and API design.
+
+    % Chapter 6
+    \item[Chapter~\ref{chap:evaluation} - Evaluation] reports the empirical evaluation. It describes the experimental setup including the energy domain dataset (47 tables, 431 columns), the Building Energy Ontology (602 classes), and the evaluation metrics at node and path levels. It presents quantitative results comparing eight configurations across provider choice, prompting strategy, and decision mode, analyzes the effects of Chain-of-Thought prompting and Ensemble Decision Making, provides qualitative case studies illustrating success patterns and failure modes, and concludes with a cost--accuracy analysis identifying Pareto-efficient configurations and practical deployment recommendations. The chapter also discusses how the findings address the research questions and acknowledges limitations.
+
+    % Chapter 7
+    \item[Chapter~\ref{chap:conclusion} - Conclusion] summarizes the contributions and outlines future directions. It consolidates the engineering contributions (modular architecture, provider-agnostic LLM interface, end-to-end traceability), algorithmic contributions (BFS traversal, CoT prompting, EDM), and empirical contributions (controlled comparison, cost-accuracy analysis). It then proposes future work spanning engineering enhancements (parallel execution, interactive error inspection), methodological improvements (adaptive EDM, multi-ontology support, human feedback loops), and broader research directions (cross-domain transfer, hybrid symbolic-LLM pipelines, explainability).
+\end{description}
+
+Finally, the \textbf{Appendix} contains supplementary materials such as detailed prompt templates, configuration schemas, batch experiment scripts, and additional data tables supporting the experimental results.

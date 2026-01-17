@@ -1,0 +1,54 @@
+\begin{tikzpicture}[
+    scale=0.7, transform shape,
+    every node/.style={circle, draw, minimum size=7mm, font=\footnotesize\ttfamily},
+    edge/.style={draw, ->, >=stealth, thick},
+    selectedge/.style={draw, ->, >=stealth, very thick, green!60!black},
+    candidedge/.style={draw, ->, >=stealth, thick, blue!60!black},
+    rejectededge/.style={draw, ->, >=stealth, thick, gray!50,
+        decoration={markings, mark=at position 0.5 with {\node[red, font=\scriptsize\bfseries, draw=none, fill=none] {$\times$};}},
+        postaction={decorate}},
+    current/.style={fill=orange!40, draw=orange!70!black, thick},
+    processed/.style={fill=green!30, draw=green!60!black, thick},
+    queued/.style={fill=green!15, draw=green!60!black, dashed, thick},
+    candidate/.style={fill=blue!20, draw=blue!60!black},
+    rejected/.style={fill=gray!30, draw=gray!60!black},
+    default/.style={fill=white, draw=gray!60!black}
+]
+% Level 0
+\node[processed] (o0) at (3,4) {$o_0$};
+
+% Level 1
+\node[current] (o1) at (0,2) {$o_1$};
+\node[rejected] (o2) at (2,2) {$o_2$};
+\node[queued] (o3) at (4,2) {$o_3$};
+\node[rejected] (o4) at (6,2) {$o_4$};
+
+% Level 2
+\node[candidate] (o5) at (0,0) {$o_5$};
+\node[candidate] (o6) at (2,0) {$o_6$};
+\node[default] (o7) at (4,0) {$o_7$};
+\node[default] (o8) at (6,0) {$o_8$};
+
+% Selected edges from o0
+\draw[selectedge] (o0) -- (o1);
+\draw[selectedge] (o0) -- (o3);
+
+% Rejected edges from o0
+\draw[rejectededge] (o0) -- (o2);
+\draw[rejectededge] (o0) -- (o4);
+
+% Candidate edges from o1
+\draw[candidedge] (o1) -- (o5);
+\draw[candidedge] (o1) -- (o6);
+
+% Default edges from o3
+\draw[edge] (o3) -- (o6);
+\draw[edge] (o3) -- (o7);
+
+% Rejected edge from o4
+\draw[rejectededge] (o4) -- (o8);
+
+% Annotation
+\node[draw=none, rectangle, anchor=north west, align=left, font=\scriptsize, text=black]
+    at (-0.5,-0.8) {$\mathcal{O}_{\text{sub}} = \{o_5, o_6\}$, \quad $Q = \{(1, o_3, [o_0,o_3])\}$};
+\end{tikzpicture}

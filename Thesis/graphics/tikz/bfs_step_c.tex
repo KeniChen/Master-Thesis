@@ -1,0 +1,47 @@
+\begin{tikzpicture}[
+    scale=0.7, transform shape,
+    every node/.style={circle, draw, minimum size=7mm, font=\footnotesize\ttfamily},
+    edge/.style={draw, ->, >=stealth, thick},
+    selectedge/.style={draw, ->, >=stealth, very thick, green!60!black},
+    rejectededge/.style={draw, ->, >=stealth, thick, gray!50,
+        decoration={markings, mark=at position 0.5 with {\node[red, font=\scriptsize\bfseries, draw=none, fill=none] {$\times$};}},
+        postaction={decorate}},
+    processed/.style={fill=green!30, draw=green!60!black, thick},
+    queued/.style={fill=green!15, draw=green!60!black, dashed, thick},
+    rejected/.style={fill=gray!30, draw=gray!60!black},
+    default/.style={fill=white, draw=gray!60!black}
+]
+% Level 0
+\node[processed] (o0) at (3,4) {$o_0$};
+
+% Level 1
+\node[queued] (o1) at (0,2) {$o_1$};
+\node[rejected] (o2) at (2,2) {$o_2$};
+\node[queued] (o3) at (4,2) {$o_3$};
+\node[rejected] (o4) at (6,2) {$o_4$};
+
+% Level 2
+\node[default] (o5) at (0,0) {$o_5$};
+\node[default] (o6) at (2,0) {$o_6$};
+\node[default] (o7) at (4,0) {$o_7$};
+\node[default] (o8) at (6,0) {$o_8$};
+
+% Selected edges from o0
+\draw[selectedge] (o0) -- (o1);
+\draw[selectedge] (o0) -- (o3);
+
+% Rejected edges from o0
+\draw[rejectededge] (o0) -- (o2);
+\draw[rejectededge] (o0) -- (o4);
+
+% Edges from Level 1 to Level 2 (default)
+\draw[edge] (o1) -- (o5);
+\draw[edge] (o1) -- (o6);
+\draw[edge] (o3) -- (o6);
+\draw[edge] (o3) -- (o7);
+\draw[edge] (o4) -- (o8);
+
+% Annotation
+\node[draw=none, rectangle, anchor=north west, align=left, font=\scriptsize, text=black]
+    at (-0.5,-0.8) {$\mathcal{D}(\{o_1,o_2,o_3,o_4\}) \to \{o_1,o_3\}$\\$Q = \{(1, o_1, [o_0,o_1]), (1, o_3, [o_0,o_3])\}$};
+\end{tikzpicture}

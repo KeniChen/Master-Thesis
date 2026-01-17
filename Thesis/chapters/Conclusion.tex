@@ -1,0 +1,101 @@
+% =============================================================================
+% Chapter 7: Conclusion
+% =============================================================================
+
+\chapter{Conclusion}
+\label{chap:conclusion}
+
+This thesis tackles automated, ontology-grounded semantic annotation for heterogeneous tabular data in domain-specific settings. It examines how Large Language Models (LLMs) can support ontology-driven annotation while maintaining structural validity, experimental reproducibility, and practical deployability. The remainder of this chapter consolidates the contributions and delineates directions for future work.
+
+% =============================================================================
+% Section 7.1: Summary of Contributions
+% =============================================================================
+
+\section{Summary of Contributions}
+\label{sec:summary_contributions}
+
+This thesis designs, implements, and evaluates an end-to-end platform for ontology-driven semantic annotation with Large Language Models. The contributions span engineering, algorithmic design, and empirical evaluation.
+
+\paragraph{Engineering Contributions.}
+The engineering contributions focus on operationalising LLM-based annotation in realistic deployments:
+\begin{itemize}
+    \item A \textbf{modular, four-layer architecture} isolates the web interface, API gateway, core engine, and persistence layer, enabling independent evolution and testing of components.
+    \item A \textbf{provider-agnostic LLM interface} integrates hosted APIs (Azure/OpenAI) and local inference (Ollama), enabling explicit trade-offs among accuracy, cost, and data governance.
+    \item \textbf{End-to-end traceability} persists ontology snapshots, column contexts, run configurations, prompts, and responses, supporting auditability and exact reruns.
+\end{itemize}
+
+
+\paragraph{Algorithmic Contributions.}
+The platform implements the ontology-driven annotation algorithm proposed by Pan et al. (2025)~\cite{pan2025semantic} and operationalises LLMs as \emph{bounded decision engines} that perform local, ontology-aware navigation under explicit structural constraints. Specifically:
+\begin{itemize}
+    \item A \textbf{Breadth-First Search (BFS) traversal} over the ontology DAG reformulates annotation as a sequence of discriminative choices along the hierarchy. Restricting each step to enumerated candidates yields structurally valid predictions by construction and prevents assignments to non-existent classes.
+    \item \textbf{Chain-of-Thought (CoT) prompting} elicits intermediate rationales before each decision, strengthening evidence integration across column headers, type hints, and representative values.
+    \item An \textbf{Ensemble Decision Making (EDM)} mechanism aggregates judgements from independent LLM agents via weighted voting, reducing sampling-induced variance under stochastic decoding.
+\end{itemize}
+
+
+\paragraph{Empirical Contributions.}
+The platform was evaluated on a real-world benchmark from the energy domain, using the 47 tables with 431 columns, and a target ontology, i.e., Building Energy Ontology (BEO) with 602 classes and maximum depth of 8. The evaluation provides:
+\begin{itemize}
+    \item A controlled comparison of 8 configurations spanning provider choice, prompting strategy, and decision mode.
+    \item Quantitative results at both node and path granularity, reported under micro- and macro-averaging.
+    \item A cost--accuracy study that identifies Pareto-efficient settings across representative deployment constraints.
+    \item Qualitative case studies that expose recurrent success patterns and failure modes.
+\end{itemize}
+
+% =============================================================================
+% Section 7.2: Future Work
+% =============================================================================
+
+\section{Future Work}
+\label{sec:future_work}
+
+The platform establishes a reproducible baseline for ontology-driven LLM annotation. Several directions can further improve scalability, robustness, and usability.
+
+% -----------------------------------------------------------------------------
+% Subsection: Engineering Enhancements
+% -----------------------------------------------------------------------------
+\subsection{Engineering Enhancements}
+\label{subsec:future_engineering}
+
+\paragraph{Parallel Execution and Scheduling.}
+The current execution pipeline is predominantly sequential. Parallelizing per-column processing and per-agent voting in the EDM module would reduce wall-clock latency and improve throughput, potentially shifting the cost--accuracy frontier in favour of ensemble configurations. Realizing these gains requires a scheduler that manages concurrency, enforces provider rate limits, and preserves traceability under retries and partial failures.
+
+\paragraph{Interactive Error Inspection.}
+Although the backend persists rich traces and evaluation artefacts, the user interface provides limited support for forensic analysis. An ``Error Workbench'' that filters mismatched columns, visualizes predicted versus gold paths, and exposes intermediate candidate sets would accelerate debugging and strengthen operator trust in production deployments.
+
+\paragraph{Cost Controls and Budget Estimators.}
+Useful extensions include per-run budget caps, early stopping under budget exhaustion, and pilot-run estimators that extrapolate full-run costs from a stratified sample of columns.
+
+% -----------------------------------------------------------------------------
+% Subsection: Methodological Improvements
+% -----------------------------------------------------------------------------
+\subsection{Methodological Improvements}
+\label{subsec:future_methodology}
+
+\paragraph{Adaptive Ensemble Decision Making.}
+The current EDM module uses fixed redundancy and static thresholds. A natural extension is \textbf{adaptive EDM}, where computational effort depends on estimated difficulty: straightforward columns are handled by a single agent, while ambiguous cases trigger additional agents or stricter consensus rules. Difficulty signals could be derived from inter-agent disagreement or calibrated confidence estimates.
+
+\paragraph{Multi-Ontology Support.}
+Operational settings often require concurrent annotation against multiple ontologies or alignment with external knowledge bases. Joint annotation therefore requires explicit representations of cross-ontology mappings (e.g., equivalence and subsumption relations) and enforcement of consistency constraints.
+
+\paragraph{Human Feedback Loops.}
+Furthermore, corrected labels could refine prompts, maintain a domain-specific memory of confirmed mappings, or train lightweight re-rankers for candidate selection. Active learning could prioritize high-uncertainty columns for expert review, improving label quality under limited annotation budgets.
+
+% -----------------------------------------------------------------------------
+% Subsection: Broader Research Directions
+% -----------------------------------------------------------------------------
+\subsection{Broader Research Directions}
+\label{subsec:future_research}
+
+\paragraph{Cross-Domain Transfer.}
+An open question is how well ontology-driven annotation strategies transfer across domains with different vocabularies, units, and modelling granularity. Domain heterogeneity may limit direct reuse of prompts, candidate selection heuristics, and evaluation assumptions. Consequently, systematic cross-domain experiments (e.g., in healthcare, finance, or industrial IoT) are needed to identify which pipeline components generalize as-is and which require domain-specific adaptation.
+
+\paragraph{Hybrid Symbolic--LLM Pipelines.}
+Future systems may combine deterministic signals (string similarity, unit parsing, rule-based filters) with LLM judgements. Symbolic pre-filters could reduce candidate sets before LLM evaluation, improving both accuracy and computational efficiency.
+
+\paragraph{Explainability and Justification.}
+The platform already records detailed traces, but these are not yet converted into user-facing explanations. A longer-term goal is to generate structured justifications linked to concrete evidence and to surface counterfactual alternatives, including ontology branches that were considered and rejected.
+
+\vspace{1em}
+Overall, progress in LLM-based semantic annotation requires both algorithmic constraints and disciplined systems engineering: workflows must adapt computational effort to uncertainty, enable robust human oversight, and scale to realistic, large-scale deployments. The platform and evaluation in this thesis substantiate this perspective and motivate the concrete extensions outlined above.

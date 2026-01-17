@@ -1,0 +1,125 @@
+% ----- Define title page
+\newtoggle{printLogos}
+\togglefalse{printLogos}
+\RenewDocumentCommand \maketitle { } {%
+    \hypersetup{%
+                pdftitle={\@mainTitle},      % Titel, Autor und Subject in
+                pdfsubject={\@thesisType},   %  PDF-Eigenschaften eintragen
+                pdfauthor={\@author},
+                pdfkeywords={\@keywords}
+    }%
+    \settowidth{\@supervisornamelength}{\@supervisorName}
+    \settowidth{\@secondrefereenamelength}{\@secondRefereeName}
+    \iftoggle{secondReferee}{%
+        \ifnumcomp{\@supervisornamelength}{>}{\@secondrefereenamelength}{%
+            \setlength{\@supervisorlabellength}{\@supervisornamelength}
+        }{%else
+            \setlength{\@supervisorlabellength}{\@secondrefereenamelength}
+        }
+    }{%else
+        \setlength{\@supervisorlabellength}{\@supervisornamelength}
+    }
+
+    \begin{titlepage}
+        \usetikzlibrary{calc}
+        \begin{tikzpicture}[
+            remember picture,
+            overlay,
+            base/.style={
+                outer sep=0,
+                inner sep=0,
+            },
+            title/.style={
+                base,
+                font=\sffamily\LARGE\bfseries,
+                align=center,
+                text width=.9*\paperwidth,
+            },
+            subtitle/.style={
+                title,
+                font=\sffamily\Large\bfseries,
+            },
+            aligned/.style={
+                base,
+                align=center,
+            },
+            thesis/.style={
+                base,
+                font=\bfseries,
+            },
+        ]
+            \iftoggle{printLogos}{%
+                \node [anchor=north east] at ($(current page.north east)-(1cm, 1cm)$) {\includegraphics[width=.4\paperwidth]{logos/rwth_acs_combined}};
+            }
+
+            % distances
+            \coordinate (pageHeight) at ($(current page.north)-(current page.south)$);
+            \coordinate (titlePos) at ($(current page.north)!.20!(current page.south)$);
+            \coordinate (signaturePos) at ($(current page.south)!.08!(current page.north)$);
+            \coordinate (titleSep) at ($.025*(pageHeight)$);
+            \coordinate (authorSep) at ($.05*(pageHeight)$);
+            \coordinate (thesisSep) at ($.15*(pageHeight)$);
+            \coordinate (rwthacsnameSep) at ($.05*(pageHeight)$);
+            \coordinate (supervisorSep) at ($.05*(pageHeight)$);
+            \coordinate (instituteSep) at ($.025*(pageHeight)$);
+
+            % titles
+            \node [title, anchor=north] (mainTitle) at (titlePos) {\@mainTitle};
+            \node [subtitle, anchor=north] (subTitle) at ($(mainTitle.south)-(titleSep)$) {\@subTitle};
+
+            % author / matriculation number
+            \node [aligned, anchor=north] (author) at ($(subTitle.south)-(authorSep)$) {%
+                \@author\\
+                \@matrNrName: \@matrNr
+            };
+
+            % thesis type
+            \node [thesis, anchor=north] (thesis) at ($(author.south)-(thesisSep)$) {\@thesisType};
+
+            % rwth / acs / faculty
+            \node [aligned, anchor=north] (rwthacsname) at ($(thesis.south)-(rwthacsnameSep)$) {\@rwthAcsName};
+
+            % supervisor
+            \node [base, anchor=north] (supervisor) at ($(rwthacsname.south)-(supervisorSep)$) {
+                \begin{tikzpicture}
+                     \node [] (supervisorLab) at (0,0) {\@supervisorName:};
+                     \node [anchor=north west] (supervisors) at ($(supervisorLab.north west)+(\@supervisorlabellength, 0)+(1em, 0)$) {
+                        \begin{minipage}[t]{\@supervisorlength}%
+                            \printsupervisors
+                        \end{minipage}
+                    };
+                    \iftoggle{secondReferee}{%
+                        \coordinate (supervisorBtm) at ($(supervisorLab.north west)!(supervisors.south west)!(supervisorLab.south west)$);
+                        \node [anchor=north west] (sndRefereeLab) at (supervisorBtm) {\@secondRefereeName:};
+                        \node [anchor=north west] (supervisors) at ($(sndRefereeLab.north west)+(\@supervisorlabellength, 0)+(1em, 0)$) {
+                            \begin{minipage}[t]{\@supervisorlength}%
+                                \printsecondreferees
+                            \end{minipage}
+                    };
+                }{}
+                \end{tikzpicture}
+            };
+
+            \iftoggle{printInstitutes}{%
+                \node [aligned, anchor=north] (institutes) at ($(supervisor.south)-(instituteSep)$) {\printinstitutes};
+            }{}
+
+            % signatures
+            \iftoggle{printSignatures}{%
+                \node [aligned, anchor=south] (signatures) at (signaturePos) {%
+                    \edef\signatureLength{6cm}
+                    \begin{tikzpicture}[
+                        signature/.style={
+                            font=\scriptsize,
+                        },
+                    ]
+                        \node [] (signatureLineProf) at (0, 0) {\makebox[\signatureLength]{\hrulefill}};
+                        \node [signature, anchor=north] (signatureProf) at ($(signatureLineProf.south)-(0, 1ex)$) {(\@firstExaminer)};
+
+                    \end{tikzpicture}
+                };
+            }{}
+        \end{tikzpicture}
+
+    \end{titlepage}
+}

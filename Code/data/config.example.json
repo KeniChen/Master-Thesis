@@ -1,0 +1,57 @@
+{
+  "llm": {
+    "active_provider": "ollama",
+    "providers": {
+      "ollama": {
+        "base_url": "http://localhost:11434",
+        "models": ["gpt-oss:20b","llama3.1:8b"],
+        "default_model": "gpt-oss:20b"
+      },
+      "azure_openai": {
+        "endpoint": "",
+        "api_key": "",
+        "models": [],
+        "default_model": ""
+      },
+      "openai": {
+        "api_key": "",
+        "models": [],
+        "default_model": ""
+      },
+      "anthropic": {
+        "api_key": "",
+        "models": [],
+        "default_model": ""
+      },
+      "google": {
+        "api_key": "",
+        "models": [],
+        "default_model": ""
+      },
+      "litellm": {
+        "api_key": "",
+        "api_base": "",
+        "models": [],
+        "default_model": ""
+      }
+    }
+  },
+  "defaults": {
+    "mode": "single",
+    "prompt_type": "cot",
+    "max_depth": 3,
+    "k": 5,
+    "edm_options": {
+      "classes_per_agent": 30,
+      "agents_per_class": 3,
+      "consensus_threshold": 0.8
+    }
+  },
+  "paths": {
+    "tables": "data/tables/real",
+    "ontologies": "data/ontologies",
+    "runs": "data/runs",
+    "labels": "data/labels/real",
+    "batches": "data/batches"
+  }
+}

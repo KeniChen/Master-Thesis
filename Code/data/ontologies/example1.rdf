@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+         xmlns:owl="http://www.w3.org/2002/07/owl#"
+         xmlns:ex="http://example.org/ontology/tree#">
+
+  <!-- Ontology Declaration -->
+  <owl:Ontology rdf:about="http://example.org/ontology/tree">
+    <rdfs:label>Example Tree Ontology</rdfs:label>
+    <rdfs:comment>A simple tree-structured ontology for testing (each class has exactly one parent)</rdfs:comment>
+  </owl:Ontology>
+
+  <!-- Root Class -->
+  <owl:Class rdf:about="http://example.org/ontology/tree#Entity">
+    <rdfs:label>Entity</rdfs:label>
+    <rdfs:comment>Root class of the ontology</rdfs:comment>
+  </owl:Class>
+
+  <!-- Level 1 -->
+  <owl:Class rdf:about="http://example.org/ontology/tree#LivingThing">
+    <rdfs:label>Living Thing</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/tree#Entity"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/tree#NonLivingThing">
+    <rdfs:label>Non-Living Thing</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/tree#Entity"/>
+  </owl:Class>
+
+  <!-- Level 2 - Under LivingThing -->
+  <owl:Class rdf:about="http://example.org/ontology/tree#Animal">
+    <rdfs:label>Animal</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/tree#LivingThing"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/tree#Plant">
+    <rdfs:label>Plant</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/tree#LivingThing"/>
+  </owl:Class>
+
+  <!-- Level 2 - Under NonLivingThing -->
+  <owl:Class rdf:about="http://example.org/ontology/tree#Vehicle">
+    <rdfs:label>Vehicle</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/tree#NonLivingThing"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/tree#Building">
+    <rdfs:label>Building</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/tree#NonLivingThing"/>
+  </owl:Class>
+
+  <!-- Level 3 - Under Animal -->
+  <owl:Class rdf:about="http://example.org/ontology/tree#Mammal">
+    <rdfs:label>Mammal</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/tree#Animal"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/tree#Bird">
+    <rdfs:label>Bird</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/tree#Animal"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/tree#Fish">
+    <rdfs:label>Fish</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/tree#Animal"/>
+  </owl:Class>
+
+  <!-- Level 3 - Under Plant -->
+  <owl:Class rdf:about="http://example.org/ontology/tree#Tree">
+    <rdfs:label>Tree</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/tree#Plant"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/tree#Flower">
+    <rdfs:label>Flower</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/tree#Plant"/>
+  </owl:Class>
+
+  <!-- Level 3 - Under Vehicle -->
+  <owl:Class rdf:about="http://example.org/ontology/tree#Car">
+    <rdfs:label>Car</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/tree#Vehicle"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/tree#Airplane">
+    <rdfs:label>Airplane</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/tree#Vehicle"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/tree#Ship">
+    <rdfs:label>Ship</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/tree#Vehicle"/>
+  </owl:Class>
+
+  <!-- Level 4 - Under Mammal -->
+  <owl:Class rdf:about="http://example.org/ontology/tree#Dog">
+    <rdfs:label>Dog</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/tree#Mammal"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/tree#Cat">
+    <rdfs:label>Cat</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/tree#Mammal"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/tree#Human">
+    <rdfs:label>Human</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/tree#Mammal"/>
+  </owl:Class>
+
+  <!-- Level 4 - Under Bird -->
+  <owl:Class rdf:about="http://example.org/ontology/tree#Eagle">
+    <rdfs:label>Eagle</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/tree#Bird"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/tree#Penguin">
+    <rdfs:label>Penguin</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/tree#Bird"/>
+  </owl:Class>
+
+</rdf:RDF>

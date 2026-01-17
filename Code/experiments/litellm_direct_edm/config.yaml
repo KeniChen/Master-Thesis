@@ -1,0 +1,101 @@
+# Experiment: litellm azure-gpt-4.1 + direct + edm
+ontology: BEO.rdf
+mode: edm
+prompt_type: direct
+max_depth: 2
+k: 5
+tasks:
+  - table: 1.csv
+    columns: all
+  - table: 2.csv
+    columns: all
+  - table: 3.csv
+    columns: all
+  - table: 4.csv
+    columns: all
+  - table: 5.csv
+    columns: all
+  - table: 6.csv
+    columns: all
+  - table: 7.csv
+    columns: all
+  - table: 8.csv
+    columns: all
+  - table: 9.csv
+    columns: all
+  - table: 10.csv
+    columns: all
+  - table: 11.csv
+    columns: all
+  - table: 12.csv
+    columns: all
+  - table: 13.csv
+    columns: all
+  - table: 14.csv
+    columns: all
+  - table: 15.csv
+    columns: all
+  - table: 16.csv
+    columns: all
+  - table: 17.csv
+    columns: all
+  - table: 18.csv
+    columns: all
+  - table: 19.csv
+    columns: all
+  - table: 20.csv
+    columns: all
+  - table: 22.csv
+    columns: all
+  - table: 23.csv
+    columns: all
+  - table: 24.csv
+    columns: all
+  - table: 25.csv
+    columns: all
+  - table: 26.csv
+    columns: all
+  - table: 27.csv
+    columns: all
+  - table: 28.csv
+    columns: all
+  - table: 29.csv
+    columns: all
+  - table: 30.csv
+    columns: all
+  - table: 31.csv
+    columns: all
+  - table: 32.csv
+    columns: all
+  - table: 33.csv
+    columns: all
+  - table: 34.csv
+    columns: all
+  - table: 35.csv
+    columns: all
+  - table: 36.csv
+    columns: all
+  - table: 37.csv
+    columns: all
+  - table: 38.csv
+    columns: all
+  - table: 39.csv
+    columns: all
+  - table: 40.csv
+    columns: all
+  - table: 41.csv
+    columns: all
+  - table: 42.csv
+    columns: all
+  - table: 43.csv
+    columns: all
+  - table: 44.csv
+    columns: all
+  - table: 45.csv
+    columns: all
+  - table: 46.csv
+    columns: all
+  - table: 47.csv
+    columns: all
+  - table: 48.csv
+    columns: all
