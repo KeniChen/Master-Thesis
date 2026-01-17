@@ -10,7 +10,6 @@
 - Node.js 24 and `pnpm`
 
 ## Quick start
-## Quick start
 
 1. Configure your LLM provider in `data/config.json` (copied from `data/config.example.json` during setup):
 
