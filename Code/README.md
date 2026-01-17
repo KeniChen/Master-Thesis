@@ -1,44 +1,15 @@
-# SAED-LLM: Semantic Annotation for Energy Data using ensemble decision-making with Large Language Models
+# Semantic annotation for energy data using ensemble decision-making with LLMs.
 
-This is official repo for "SAED-LLM: Semantic Annotation for Energy Data using ensemble decision-making with Large Language Models" by Chair of Computer Science i5 (DBIS) and Institute for Automation of Complex Power Systems (ACS) at RWTH Aachen University and Fraunhofer Institute for Applied Information Technology (FIT).
+## Project layout
+- `backend/`: API and CLI services.
+- `frontend/`: Next.js web UI.
+- `data/`: ontologies, tables, configs, and experiment outputs.
 
-[Yongli Mou*](mou@dbis.rwth-aachen.de), Zhiyu Pan, Fengshuo Hao, Stefan Decker and Antonello Monti.
+## Prereqs
+- `uv`
+- Node.js 24 and `pnpm`
 
-## Installation
-
-This project uses [uv](https://docs.astral.sh/uv/) for dependency management. Install it first:
-
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
-For the frontend, you need [`Node.js`](https://nodejs.org/en/download) (v24) and `pnpm`:
-
-```bash
-# Download and install nvm:
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
-# in lieu of restarting the shell
-\. "$HOME/.nvm/nvm.sh"
-# Download and install Node.js:
-nvm install 24
-# Verify the Node.js version:
-node -v # Should print "v24.11.1".
-# Verify npm version:
-npm -v # Should print "11.6.2".
-# Install pnpm
-npm install -g pnpm
-```
-
-### Using Makefile (recommended)
-
-```bash
-# Setup environment and install dependencies
-make setup
-
-# Only install dependencies
-make install
-```
-
+## Quick start
 ## Quick start
 
 1. Configure your LLM provider in `data/config.json` (copied from `data/config.example.json` during setup):

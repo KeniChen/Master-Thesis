@@ -1,9 +1,13 @@
-# Dataset
+# Data
 
-## Ontology
+Datasets, ontologies, configs, and experiment outputs used by SAED-LLM.
 
-Building Energy Ontology (BEO)
+## Layout
+- `ontologies/`: ontology files.
+- `tables/`: input tables.
+- `runs/`: run outputs.
+- `batches/`: batch configs.
 
-## Tables
-
-Example data and annotation
+## Quick start
+- Put ontologies in `ontologies/` and tables in `tables/`.
+- Reference them from `data/config.json` or the CLI tools.

@@ -1,7 +1,6 @@
 # Backend
 
-The backend for semantic annotation of tabular data using large language models.
-
+API and CLI services for semantic annotation.
 ## Installation
 
 ```bash
