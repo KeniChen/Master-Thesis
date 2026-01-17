@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAED Pipeline Visualization</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e8f4f8 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: auto;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow:
+                0 4px 6px -1px rgba(0, 0, 0, 0.05),
+                0 10px 15px -3px rgba(0, 0, 0, 0.08),
+                0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+        }
+
+        .pipeline {
+            display: flex;
+            align-items: stretch;
+            justify-content: center;
+            gap: 6px;
+            position: relative;
+        }
+
+        .section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #475569;
+            text-align: center;
+            margin-bottom: 10px;
+            padding: 6px 12px;
+            background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+            border-radius: 20px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .section-title svg {
+            width: 16px;
+            height: 16px;
+            fill: #3b82f6;
+        }
+
+        .section-content {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 14px;
+            box-shadow:
+                0 2px 4px rgba(0, 0, 0, 0.04),
+                0 0 0 1px rgba(0, 0, 0, 0.04);
+            position: relative;
+            height: 100%;
+        }
+
+        /* BFS Section */
+        .bfs-section {
+            width: 340px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .ontology-panel {
+            position: relative;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .panel-header svg {
+            width: 14px;
+            height: 14px;
+            fill: #64748b;
+        }
+
+        /* State Panel */
+        .state-panel {
+            display: flex;
+            gap: 12px;
+        }
+
+        .state-box {
+            flex: 1;
+            background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 10px;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .state-header {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+
+        .state-header svg {
+            width: 12px;
+            height: 12px;
+            fill: #64748b;
+        }
+
+        .queue-items,
+        .path-items {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .queue-item,
+        .path-item {
+            font-size: 0.6rem;
+            font-family: 'JetBrains Mono', monospace;
+            background: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+
+        .queue-item.queued-path {
+            background: linear-gradient(145deg, #dbeafe 0%, #bfdbfe 100%);
+            border-color: #2563eb;
+            color: #1e40af;
+        }
+
+        .path-item.active {
+            background: linear-gradient(145deg, #dcfce7 0%, #bbf7d0 100%);
+            border-color: #22c55e;
+            color: #166534;
+        }
+
+        /* Node styles */
+        .node {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.3s ease;
+        }
+
+        .node-visited {
+            background: linear-gradient(145deg, #94a3b8 0%, #64748b 100%);
+            color: white;
+            box-shadow: 0 2px 6px rgba(100, 116, 139, 0.25);
+        }
+
+        .node-current {
+            background: linear-gradient(145deg, #fb923c 0%, #f97316 100%);
+            color: white;
+            box-shadow: 0 2px 10px rgba(249, 115, 22, 0.4);
+        }
+
+        .node-candidate {
+            background: linear-gradient(145deg, #7dd3fc 0%, #38bdf8 100%);
+            color: white;
+            box-shadow: 0 2px 6px rgba(56, 189, 248, 0.3);
+        }
+
+        .node-selected {
+            background: linear-gradient(145deg, #4ade80 0%, #22c55e 100%);
+            color: white;
+            box-shadow: 0 2px 10px rgba(34, 197, 94, 0.4);
+        }
+
+        .node-queued {
+            background: linear-gradient(145deg, #60a5fa 0%, #2563eb 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+        }
+
+        .node-small {
+            width: 28px;
+            height: 28px;
+            font-size: 0.6rem;
+        }
+
+        /* Middle Connection Section */
+        .middle-section {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 10px;
+            padding: 8px 2px;
+        }
+
+        .arrow-row {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .arrow-content {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .arrow-content-title {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .arrow-content-title svg {
+            width: 12px;
+            height: 12px;
+            fill: #64748b;
+        }
+
+        .ontology-classes-row {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+        }
+
+        /* Color-based Table */
+        .color-table {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .table-row {
+            display: flex;
+            gap: 2px;
+        }
+
+        .table-cell {
+            width: 28px;
+            height: 14px;
+            border-radius: 2px;
+        }
+
+        .table-header-cell {
+            background: linear-gradient(145deg, #475569 0%, #334155 100%);
+        }
+
+        .table-header-cell.highlight {
+            background: linear-gradient(145deg, #f97316 0%, #ea580c 100%);
+        }
+
+        .table-data-cell {
+            background: linear-gradient(145deg, #e2e8f0 0%, #cbd5e1 100%);
+        }
+
+        .table-data-cell.highlight {
+            background: linear-gradient(145deg, #fed7aa 0%, #fdba74 100%);
+        }
+
+        .highlight-indicator {
+            font-size: 0.5rem;
+            color: #ea580c;
+            text-align: center;
+            margin-top: 2px;
+        }
+
+        .arrow-svg {
+            width: 40px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .return-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .return-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: linear-gradient(145deg, #dcfce7 0%, #bbf7d0 100%);
+            border-radius: 10px;
+            border: 1px solid #86efac;
+        }
+
+        .return-label {
+            font-size: 0.6rem;
+            color: #166534;
+            font-weight: 500;
+        }
+
+        .return-nodes {
+            display: flex;
+            gap: 4px;
+        }
+
+        /* LLM Section */
+        .llm-section {
+            width: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .agents-row {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+        }
+
+        .agent-card {
+            background: linear-gradient(145deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            transition: all 0.3s ease;
+        }
+
+        .agent-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
+        }
+
+        .agent-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(145deg, #0ea5e9 0%, #0284c7 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(14, 165, 233, 0.3);
+        }
+
+        .agent-icon svg {
+            width: 22px;
+            height: 22px;
+            fill: white;
+        }
+
+        .agent-label {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: #0369a1;
+        }
+
+        .agent-assigned {
+            font-size: 0.55rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: #64748b;
+            background: white;
+            padding: 3px 6px;
+            border-radius: 4px;
+            border: 1px solid #e0f2fe;
+        }
+
+        /* Vote Matrix */
+        .vote-matrix {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 14px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .matrix-title {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .matrix-title svg {
+            width: 14px;
+            height: 14px;
+            fill: #64748b;
+        }
+
+        .threshold-badge {
+            font-size: 0.55rem;
+            background: linear-gradient(145deg, #fef3c7 0%, #fde68a 100%);
+            color: #92400e;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: auto;
+        }
+
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: 40px repeat(3, 1fr);
+            gap: 4px;
+        }
+
+        .matrix-header-cell {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: #64748b;
+            text-align: center;
+            padding: 4px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .matrix-row-label {
+            font-size: 0.55rem;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .matrix-cell {
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cell-assigned {
+            background: linear-gradient(145deg, #dbeafe 0%, #bfdbfe 100%);
+            border: 1px solid #93c5fd;
+        }
+
+        .cell-not-assigned {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+        }
+
+        .vote-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        .vote-icon.thumbs-up {
+            fill: #22c55e;
+        }
+
+        .vote-icon.thumbs-down {
+            fill: #ef4444;
+        }
+
+        /* Result Box */
+        .result-box {
+            background: linear-gradient(145deg, #dcfce7 0%, #bbf7d0 100%);
+            border-radius: 10px;
+            padding: 12px 16px;
+            border: 1px solid #86efac;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .result-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #166534;
+        }
+
+        .result-nodes {
+            display: flex;
+            gap: 6px;
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            gap: 14px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.58rem;
+            color: #64748b;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .legend-line {
+            width: 20px;
+            height: 4px;
+            border-radius: 2px;
+        }
+
+        .legend-dot.current {
+            background: linear-gradient(145deg, #fb923c 0%, #f97316 100%);
+        }
+
+        .legend-dot.candidate {
+            background: linear-gradient(145deg, #7dd3fc 0%, #38bdf8 100%);
+        }
+
+        .legend-line.current {
+            background: linear-gradient(90deg, #fb923c 0%, #f97316 100%);
+        }
+
+        .legend-line.selected {
+            background: linear-gradient(90deg, #4ade80 0%, #22c55e 100%);
+        }
+
+        .legend-line.queued {
+            background: linear-gradient(90deg, #60a5fa 0%, #2563eb 100%);
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section {
+            animation: slideIn 0.5s ease forwards;
+        }
+
+        .section:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .section:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .section:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .export-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
+            transition: all 0.2s ease;
+            z-index: 1000;
+        }
+
+        .export-btn:hover {
+            background-color: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+    </style>
+</head>
+
+<body>
+    <button class="export-btn" onclick="exportToPDF()">Export PDF</button>
+    <div class="container" id="exportContainer">
+        <div class="pipeline" id="pipeline">
+
+            <!-- Section 1: Ontology-driven BFS -->
+            <div class="section" id="section1">
+                <div class="section-title">
+                    <svg viewBox="0 0 24 24">
+                        <path
+                            d="M22 11V3h-7v3H9V3H2v8h7V8h2v10h4v3h7v-8h-7v3h-2V8h2v3h7zM7 9H4V5h3v4zm10 6h3v4h-3v-4zm0-10h3v4h-3V5z" />
+                    </svg>
+                    Ontology-driven Breadth-First Search
+                </div>
+                <div class="section-content bfs-section" id="bfsContent">
+                    <!-- Ontology DAG -->
+                    <div class="ontology-panel">
+                        <div class="panel-header">
+                            Ontology DAG
+                        </div>
+                        <canvas id="treeCanvas" width="320" height="150"></canvas>
+                    </div>
+
+                    <!-- Algorithm State -->
+                    <div class="state-panel">
+                        <div class="state-box">
+                            <div class="state-header">
+                                <svg viewBox="0 0 24 24">
+                                    <path
+                                        d="M4 10.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm0-6c-.83 0-1.5.67-1.5 1.5S3.17 7.5 4 7.5 5.5 6.83 5.5 6 4.83 4.5 4 4.5zm0 12c-.83 0-1.5.68-1.5 1.5s.68 1.5 1.5 1.5 1.5-.68 1.5-1.5-.67-1.5-1.5-1.5zM7 19h14v-2H7v2zm0-6h14v-2H7v2zm0-8v2h14V5H7z" />
+                                </svg>
+                                Queue
+                            </div>
+                            <div class="queue-items">
+                                <div class="queue-item queued-path">(1, d1, [a0→d1])</div>
+                            </div>
+                        </div>
+                        <div class="state-box">
+                            <div class="state-header">
+                                <svg viewBox="0 0 24 24">
+                                    <path
+                                        d="M14 4l2.29 2.29-2.88 2.88 1.42 1.42 2.88-2.88L20 10V4h-6zm-4 0H4v6l2.29-2.29 4.71 4.7V20h2v-8.41l-5.29-5.3L10 4z" />
+                                </svg>
+                                Paths
+                            </div>
+                            <div class="path-items">
+                                <div class="path-item active">[a0→a1→c2]</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-dot current"></div>
+                            <span>Current</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot candidate"></div>
+                            <span>Candidate</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-line current"></div>
+                            <span>Current</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-line selected"></div>
+                            <span>Selected</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-line queued"></div>
+                            <span>Queued</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Middle Connection -->
+            <div class="section middle-section" id="section2">
+                <!-- Forward Arrow: BFS -> LLM -->
+                <div class="arrow-row">
+                    <div class="arrow-content">
+                        <div class="arrow-content-title">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M17.63 5.84C17.27 5.33 16.67 5 16 5L5 5.01C3.9 5.01 3 5.9 3 7v10c0 1.1.9 1.99 2 1.99L16 19c.67 0 1.27-.33 1.63-.84L22 12l-4.37-6.16z" />
+                            </svg>
+                            Ontology Classes
+                        </div>
+                        <div class="ontology-classes-row">
+                            <div class="node node-candidate node-small">c2</div>
+                            <div class="node node-candidate node-small">d2</div>
+                            <div class="node node-candidate node-small">e2</div>
+                        </div>
+                        <div class="arrow-content-title">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M3 3v18h18V3H3zm8 16H5v-6h6v6zm0-8H5V5h6v6zm8 8h-6v-6h6v6zm0-8h-6V5h6v6z" />
+                            </svg>
+                            Table
+                        </div>
+                        <div class="color-table">
+                            <div class="table-row">
+                                <div class="table-cell table-header-cell"></div>
+                                <div class="table-cell table-header-cell"></div>
+                                <div class="table-cell table-header-cell highlight"></div>
+                            </div>
+                            <div class="table-row">
+                                <div class="table-cell table-data-cell"></div>
+                                <div class="table-cell table-data-cell"></div>
+                                <div class="table-cell table-data-cell highlight"></div>
+                            </div>
+                            <div class="table-row">
+                                <div class="table-cell table-data-cell"></div>
+                                <div class="table-cell table-data-cell"></div>
+                                <div class="table-cell table-data-cell highlight"></div>
+                            </div>
+                        </div>
+                        <div class="highlight-indicator">↑ column to label</div>
+                    </div>
+                    <svg class="arrow-svg" viewBox="0 0 40 24">
+                        <defs>
+                            <linearGradient id="arrowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#3b82f6" />
+                                <stop offset="100%" style="stop-color:#60a5fa" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M0 12 L28 12" stroke="url(#arrowGrad)" stroke-width="3" fill="none"
+                            stroke-linecap="round" />
+                        <path d="M26 6 L36 12 L26 18" fill="#60a5fa" />
+                    </svg>
+                </div>
+
+                <!-- Return Arrow: LLM -> BFS -->
+                <div class="return-row">
+                    <svg class="arrow-svg" viewBox="0 0 40 24" style="transform: scaleX(-1);">
+                        <defs>
+                            <linearGradient id="returnGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#22c55e" />
+                                <stop offset="100%" style="stop-color:#4ade80" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M0 12 L28 12" stroke="url(#returnGrad)" stroke-width="3" fill="none"
+                            stroke-linecap="round" />
+                        <path d="M26 6 L36 12 L26 18" fill="#4ade80" />
+                    </svg>
+                    <div class="return-content">
+                        <div class="return-label">Result:</div>
+                        <div class="return-nodes">
+                            <div class="node node-selected node-small">c2</div>
+                            <div class="node node-selected node-small">e2</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: LLM-based Ensemble Decision-Making -->
+            <div class="section" id="section3">
+                <div class="section-title">
+                    <svg viewBox="0 0 24 24">
+                        <!-- Robot/Bot icon -->
+                        <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2M7.5 13A2.5 2.5 0 0 0 5 15.5 2.5 2.5 0 0 0 7.5 18a2.5 2.5 0 0 0 2.5-2.5A2.5 2.5 0 0 0 7.5 13m9 0a2.5 2.5 0 0 0-2.5 2.5 2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5 2.5 2.5 0 0 0-2.5-2.5z" />
+                    </svg>
+                    LLM-based Ensemble Decision-Making
+                </div>
+                <div class="section-content llm-section" id="llmContent">
+                    <!-- Agents Row -->
+                    <div class="agents-row">
+                        <div class="agent-card">
+                            <div class="agent-icon">
+                                <!-- Chatbot icon -->
+                                <svg viewBox="0 0 24 24">
+                                    <path
+                                        d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z" />
+                                    <circle cx="8" cy="10" r="1.5" />
+                                    <circle cx="12" cy="10" r="1.5" />
+                                    <circle cx="16" cy="10" r="1.5" />
+                                </svg>
+                            </div>
+                            <div class="agent-label">Agent 1</div>
+                            <div class="agent-assigned">c2, e2</div>
+                        </div>
+                        <div class="agent-card">
+                            <div class="agent-icon">
+                                <svg viewBox="0 0 24 24">
+                                    <path
+                                        d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z" />
+                                    <circle cx="8" cy="10" r="1.5" />
+                                    <circle cx="12" cy="10" r="1.5" />
+                                    <circle cx="16" cy="10" r="1.5" />
+                                </svg>
+                            </div>
+                            <div class="agent-label">Agent 2</div>
+                            <div class="agent-assigned">c2, d2</div>
+                        </div>
+                        <div class="agent-card">
+                            <div class="agent-icon">
+                                <svg viewBox="0 0 24 24">
+                                    <path
+                                        d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z" />
+                                    <circle cx="8" cy="10" r="1.5" />
+                                    <circle cx="12" cy="10" r="1.5" />
+                                    <circle cx="16" cy="10" r="1.5" />
+                                </svg>
+                            </div>
+                            <div class="agent-label">Agent 3</div>
+                            <div class="agent-assigned">d2, e2</div>
+                        </div>
+                    </div>
+
+                    <!-- Vote Matrix -->
+                    <div class="vote-matrix">
+                        <div class="matrix-title">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M18 13h-5v5c0 .55-.45 1-1 1s-1-.45-1-1v-5H6c-.55 0-1-.45-1-1s.45-1 1-1h5V6c0-.55.45-1 1-1s1 .45 1 1v5h5c.55 0 1 .45 1 1s-.45 1-1 1z" />
+                            </svg>
+                            Voting Matrix
+                            <span class="threshold-badge">Threshold: 60%</span>
+                        </div>
+                        <div class="matrix-grid">
+                            <div class="matrix-header-cell"></div>
+                            <div class="matrix-header-cell">c2</div>
+                            <div class="matrix-header-cell">d2</div>
+                            <div class="matrix-header-cell">e2</div>
+
+                            <div class="matrix-row-label">A1</div>
+                            <div class="matrix-cell cell-assigned">
+                                <!-- Thumbs up -->
+                                <svg class="vote-icon thumbs-up" viewBox="0 0 24 24">
+                                    <path
+                                        d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z" />
+                                </svg>
+                            </div>
+                            <div class="matrix-cell cell-not-assigned"></div>
+                            <div class="matrix-cell cell-assigned">
+                                <svg class="vote-icon thumbs-up" viewBox="0 0 24 24">
+                                    <path
+                                        d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z" />
+                                </svg>
+                            </div>
+
+                            <div class="matrix-row-label">A2</div>
+                            <div class="matrix-cell cell-assigned">
+                                <svg class="vote-icon thumbs-up" viewBox="0 0 24 24">
+                                    <path
+                                        d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z" />
+                                </svg>
+                            </div>
+                            <div class="matrix-cell cell-assigned">
+                                <!-- Thumbs down -->
+                                <svg class="vote-icon thumbs-down" viewBox="0 0 24 24">
+                                    <path
+                                        d="M15 3H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v2c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L9.83 23l6.59-6.59c.36-.36.58-.86.58-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z" />
+                                </svg>
+                            </div>
+                            <div class="matrix-cell cell-not-assigned"></div>
+
+                            <div class="matrix-row-label">A3</div>
+                            <div class="matrix-cell cell-not-assigned"></div>
+                            <div class="matrix-cell cell-assigned">
+                                <svg class="vote-icon thumbs-down" viewBox="0 0 24 24">
+                                    <path
+                                        d="M15 3H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v2c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L9.83 23l6.59-6.59c.36-.36.58-.86.58-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z" />
+                                </svg>
+                            </div>
+                            <div class="matrix-cell cell-assigned">
+                                <svg class="vote-icon thumbs-up" viewBox="0 0 24 24">
+                                    <path
+                                        d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Result -->
+                    <div class="result-box">
+                        <div class="result-label">Result:</div>
+                        <div class="result-nodes">
+                            <div class="node node-selected node-small">c2</div>
+                            <div class="node node-selected node-small">e2</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Draw the ontology tree with high DPI support
+        function drawOntologyTree() {
+            const canvas = document.getElementById('treeCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // High DPI support
+            const dpr = window.devicePixelRatio || 1;
+            const displayWidth = 320;
+            const displayHeight = 150;
+
+            // Set actual canvas size for high DPI
+            canvas.width = displayWidth * dpr;
+            canvas.height = displayHeight * dpr;
+            canvas.style.width = displayWidth + 'px';
+            canvas.style.height = displayHeight + 'px';
+
+            // Scale context for high DPI
+            ctx.scale(dpr, dpr);
+
+            ctx.clearRect(0, 0, displayWidth, displayHeight);
+
+            const nodes = {
+                a0: { x: 130, y: 20, label: 'a0', type: 'selected' },
+                a1: { x: 40, y: 70, label: 'a1', type: 'selected' },
+                b1: { x: 95, y: 70, label: 'b1', type: 'visited' },
+                c1: { x: 160, y: 70, label: 'c1', type: 'current' },
+                d1: { x: 225, y: 70, label: 'd1', type: 'visited' },
+                a2: { x: 18, y: 125, label: 'a2', type: 'visited' },
+                b2: { x: 52, y: 125, label: 'b2', type: 'visited' },
+                c2: { x: 115, y: 125, label: 'c2', type: 'candidate' },
+                d2: { x: 165, y: 125, label: 'd2', type: 'candidate' },
+                e2: { x: 215, y: 125, label: 'e2', type: 'candidate' },
+            };
+
+            const edges = [
+                ['a0', 'a1'], ['a0', 'b1'], ['a0', 'c1'], ['a0', 'd1'],
+                ['a1', 'a2'], ['a1', 'b2'], ['a1', 'c2'],
+                ['c1', 'c2'], ['c1', 'd2'], ['c1', 'e2'],
+                ['d1', 'e2']
+            ];
+
+            // Function to draw arrow
+            function drawArrow(fromX, fromY, toX, toY, color, lineWidth) {
+                const headLen = 6;
+                const nodeRadius = 14;
+
+                // Calculate direction
+                const dx = toX - fromX;
+                const dy = toY - fromY;
+                const angle = Math.atan2(dy, dx);
+                const length = Math.sqrt(dx * dx + dy * dy);
+
+                // Adjust start and end points for node radius
+                const startX = fromX + Math.cos(angle) * nodeRadius;
+                const startY = fromY + Math.sin(angle) * nodeRadius;
+                const endX = toX - Math.cos(angle) * nodeRadius;
+                const endY = toY - Math.sin(angle) * nodeRadius;
+
+                ctx.strokeStyle = color;
+                ctx.fillStyle = color;
+                ctx.lineWidth = lineWidth;
+
+                // Draw line
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(endX, endY);
+                ctx.stroke();
+
+                // Draw arrow head
+                ctx.beginPath();
+                ctx.moveTo(endX, endY);
+                ctx.lineTo(endX - headLen * Math.cos(angle - Math.PI / 6), endY - headLen * Math.sin(angle - Math.PI / 6));
+                ctx.lineTo(endX - headLen * Math.cos(angle + Math.PI / 6), endY - headLen * Math.sin(angle + Math.PI / 6));
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            // Draw edges first (gray for normal edges)
+            edges.forEach(([from, to]) => {
+                const fromNode = nodes[from];
+                const toNode = nodes[to];
+                drawArrow(fromNode.x, fromNode.y, toNode.x, toNode.y, '#cbd5e1', 1.5);
+            });
+
+            // Highlight Queued path (a0 -> d1) in bold blue
+            [['a0', 'd1']].forEach(([from, to]) => {
+                const fromNode = nodes[from];
+                const toNode = nodes[to];
+                drawArrow(fromNode.x, fromNode.y, toNode.x, toNode.y, '#2563eb', 2.5);
+            });
+
+            // Highlight Current path (a0 -> c1) in bold orange
+            [['a0', 'c1']].forEach(([from, to]) => {
+                const fromNode = nodes[from];
+                const toNode = nodes[to];
+                drawArrow(fromNode.x, fromNode.y, toNode.x, toNode.y, '#f97316', 2.5);
+            });
+
+            // Highlight Selected path (a0 -> a1 -> c2) in bold green
+            [['a0', 'a1'], ['a1', 'c2']].forEach(([from, to]) => {
+                const fromNode = nodes[from];
+                const toNode = nodes[to];
+                drawArrow(fromNode.x, fromNode.y, toNode.x, toNode.y, '#22c55e', 2.5);
+            });
+
+            // Draw dashed box around c1's children (candidates for current EDM)
+            ctx.setLineDash([5, 3]);
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(100, 110, 130, 32);
+            ctx.setLineDash([]);
+
+            // Draw nodes
+            Object.values(nodes).forEach(node => {
+                const colors = {
+                    visited: { bg: '#64748b', shadow: 'rgba(100, 116, 139, 0.3)' },
+                    current: { bg: '#f97316', shadow: 'rgba(249, 115, 22, 0.4)' },
+                    candidate: { bg: '#38bdf8', shadow: 'rgba(56, 189, 248, 0.3)' },
+                    selected: { bg: '#22c55e', shadow: 'rgba(34, 197, 94, 0.4)' },
+                    queued: { bg: '#2563eb', shadow: 'rgba(37, 99, 235, 0.35)' }
+                };
+
+                const color = colors[node.type];
+
+                // Shadow
+                ctx.beginPath();
+                ctx.arc(node.x, node.y + 2, 14, 0, Math.PI * 2);
+                ctx.fillStyle = color.shadow;
+                ctx.fill();
+
+                // Node circle
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, 14, 0, Math.PI * 2);
+                ctx.fillStyle = color.bg;
+                ctx.fill();
+
+                // Label
+                ctx.fillStyle = 'white';
+                ctx.font = '600 10px JetBrains Mono, monospace';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(node.label, node.x, node.y);
+            });
+
+            // Draw level labels (positioned to the right edge)
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '500 9px JetBrains Mono, monospace';
+            ctx.textAlign = 'left';
+            ctx.fillText('Level 0', 265, 20);
+            ctx.fillText('Level 1', 265, 70);
+            ctx.fillText('Level 2', 265, 125);
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            drawOntologyTree();
+        });
+
+        // Export to PDF function (high resolution, tight layout)
+        function exportToPDF() {
+            const pipeline = document.getElementById('pipeline');
+            const btn = document.querySelector('.export-btn');
+
+            // Hide button during export
+            btn.style.display = 'none';
+
+            // Use html2canvas to capture only the pipeline (tight bounds)
+            html2canvas(pipeline, {
+                scale: 5, // Higher resolution for better quality
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff',
+                logging: false
+            }).then(canvas => {
+                const { jsPDF } = window.jspdf;
+
+                // Get dimensions
+                const scale = 5;
+                const imgWidth = canvas.width;
+                const imgHeight = canvas.height;
+
+                // Create PDF with matching aspect ratio
+                const pdf = new jsPDF({
+                    orientation: imgWidth > imgHeight ? 'landscape' : 'portrait',
+                    unit: 'px',
+                    format: [imgWidth / scale, imgHeight / scale]
+                });
+
+                // Add image
+                const imgData = canvas.toDataURL('image/png', 1.0);
+                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth / scale, imgHeight / scale);
+
+                // Save
+                pdf.save('methods.pdf');
+
+                // Show button again
+                btn.style.display = 'block';
+            }).catch(err => {
+                console.error('Export failed:', err);
+                btn.style.display = 'block';
+                alert('Export failed. Please try again.');
+            });
+        }
+    </script>
+
+    <!-- Libraries for PDF export -->
+    <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+</body>
+
+</html>

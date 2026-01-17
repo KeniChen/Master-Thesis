@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+         xmlns:owl="http://www.w3.org/2002/07/owl#"
+         xmlns:ex="http://example.org/ontology/dag#">
+
+  <!-- Ontology Declaration -->
+  <owl:Ontology rdf:about="http://example.org/ontology/dag">
+    <rdfs:label>Example DAG Ontology</rdfs:label>
+    <rdfs:comment>A DAG-structured ontology for testing (some classes have multiple parents)</rdfs:comment>
+  </owl:Ontology>
+
+  <!-- Root Classes (Multiple Inheritance Sources) -->
+  <owl:Class rdf:about="http://example.org/ontology/dag#Entity">
+    <rdfs:label>Entity</rdfs:label>
+    <rdfs:comment>Root class of the ontology</rdfs:comment>
+  </owl:Class>
+
+  <!-- Level 1 - Primary Categories -->
+  <owl:Class rdf:about="http://example.org/ontology/dag#PhysicalObject">
+    <rdfs:label>Physical Object</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#Entity"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/dag#Agent">
+    <rdfs:label>Agent</rdfs:label>
+    <rdfs:comment>Something that can act or perform actions</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#Entity"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/dag#Location">
+    <rdfs:label>Location</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#Entity"/>
+  </owl:Class>
+
+  <!-- Level 2 -->
+  <owl:Class rdf:about="http://example.org/ontology/dag#LivingThing">
+    <rdfs:label>Living Thing</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#PhysicalObject"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/dag#Artifact">
+    <rdfs:label>Artifact</rdfs:label>
+    <rdfs:comment>Man-made object</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#PhysicalObject"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/dag#Organization">
+    <rdfs:label>Organization</rdfs:label>
+    <!-- DAG: Organization is both an Agent and has Location aspects -->
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#Agent"/>
+  </owl:Class>
+
+  <!-- Level 3 -->
+  <owl:Class rdf:about="http://example.org/ontology/dag#Animal">
+    <rdfs:label>Animal</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#LivingThing"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/dag#Plant">
+    <rdfs:label>Plant</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#LivingThing"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/dag#Vehicle">
+    <rdfs:label>Vehicle</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#Artifact"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/dag#Building">
+    <rdfs:label>Building</rdfs:label>
+    <!-- DAG: Building is both an Artifact and a Location -->
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#Artifact"/>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#Location"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/dag#Company">
+    <rdfs:label>Company</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#Organization"/>
+  </owl:Class>
+
+  <!-- Level 4 -->
+  <owl:Class rdf:about="http://example.org/ontology/dag#Person">
+    <rdfs:label>Person</rdfs:label>
+    <!-- DAG: Person is both an Animal and an Agent -->
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#Animal"/>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#Agent"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/dag#Pet">
+    <rdfs:label>Pet</rdfs:label>
+    <rdfs:comment>Domesticated animal kept for companionship</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#Animal"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/dag#FoodPlant">
+    <rdfs:label>Food Plant</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#Plant"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/dag#ElectricVehicle">
+    <rdfs:label>Electric Vehicle</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#Vehicle"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/dag#Hospital">
+    <rdfs:label>Hospital</rdfs:label>
+    <!-- DAG: Hospital is a Building (which is already Artifact + Location) and also an Organization -->
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#Building"/>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#Organization"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/dag#School">
+    <rdfs:label>School</rdfs:label>
+    <!-- DAG: School is both a Building and an Organization -->
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#Building"/>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#Organization"/>
+  </owl:Class>
+
+  <!-- Level 5 -->
+  <owl:Class rdf:about="http://example.org/ontology/dag#Doctor">
+    <rdfs:label>Doctor</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#Person"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/dag#Teacher">
+    <rdfs:label>Teacher</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#Person"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/dag#Dog">
+    <rdfs:label>Dog</rdfs:label>
+    <!-- DAG: Dog is both an Animal (via Pet) and specifically a Pet -->
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#Pet"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/dag#Cat">
+    <rdfs:label>Cat</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#Pet"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/dag#Vegetable">
+    <rdfs:label>Vegetable</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#FoodPlant"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/dag#Fruit">
+    <rdfs:label>Fruit</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#FoodPlant"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/dag#Tesla">
+    <rdfs:label>Tesla</rdfs:label>
+    <!-- DAG: Tesla is both an ElectricVehicle and made by a Company -->
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#ElectricVehicle"/>
+  </owl:Class>
+
+  <!-- Complex Multiple Inheritance Example -->
+  <owl:Class rdf:about="http://example.org/ontology/dag#ServiceDog">
+    <rdfs:label>Service Dog</rdfs:label>
+    <!-- DAG: Service Dog is a Dog (Pet) but also functions as an Agent -->
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#Dog"/>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#Agent"/>
+  </owl:Class>
+
+  <owl:Class rdf:about="http://example.org/ontology/dag#MobileClinic">
+    <rdfs:label>Mobile Clinic</rdfs:label>
+    <!-- DAG: Mobile Clinic is both a Vehicle and provides Hospital services -->
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#Vehicle"/>
+    <rdfs:subClassOf rdf:resource="http://example.org/ontology/dag#Hospital"/>
+  </owl:Class>
+
+</rdf:RDF>

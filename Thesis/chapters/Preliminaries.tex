@@ -1,0 +1,267 @@
+% =============================================================================
+% Chapter 2: Preliminaries
+% =============================================================================
+
+\chapter{Preliminaries}
+\label{chap:preliminaries}
+
+This thesis develops an ontology-aware framework for semantic table annotation. The framework rests on three pillars: ontological knowledge representation as a machine-interpretable target space, a tabular data model that captures real-world heterogeneity, and large language model capabilities that support scalable inference. Section~\ref{sec:ontology_knowledge_representation} introduces ontologies and their graph-based representation. Section~\ref{sec:tabular_data_model} formalizes the tabular data model and defines the semantic annotation task. Section~\ref{sec:large_language_models} surveys Large Language Models and examines their role as semantic reasoning engines.
+
+% =============================================================================
+% Section 2.1: Ontology and Knowledge Representation
+% =============================================================================
+
+\section{Ontology and Knowledge Representation}
+\label{sec:ontology_knowledge_representation}
+
+Ontologies encode shared conceptualizations \cite{gruber1993translation} through machine-interpretable definitions of domain concepts and their relations. In semantic annotation, ontologies function as both a controlled vocabulary and an explicit semantics layer: they reduce ambiguity in column labels, support interoperability across heterogeneous data sources, and enable reasoning over implicit knowledge (e.g., exploiting the subsumption \texttt{Electricity\allowbreak{}Consumption}\allowbreak{} $\sqsubseteq$ \texttt{Energy\allowbreak{}Consumption}). The remainder of this section introduces the representation standards used in this thesis and a graph abstraction that enables efficient algorithmic processing.
+
+\subsection{Foundations of OWL and RDF}
+\label{subsec:owl_rdf_foundations}
+
+The Web Ontology Language (OWL) and Resource Description Framework (RDF) constitute the foundational standards for ontology representation on the Semantic Web~\cite{mcguinness2004owl}. RDF defines a generic, graph-shaped data model for factual statements, while OWL provides a richer vocabulary for expressing schema-level axioms (e.g., class restrictions and property characteristics) that support automated reasoning. Together, they provide the formal semantics required to interpret ontological concepts consistently across datasets.
+
+\paragraph{Resource Description Framework.}
+RDF represents information as a set of directed, labeled edges between resources. The atomic unit is the \textit{triple}, i.e., an ordered structure comprising subject, predicate, and object:
+\begin{equation}
+    \langle \text{subject}, \text{predicate}, \text{object} \rangle
+\end{equation}
+Subjects and predicates are identified by Internationalized Resource Identifiers (IRIs), while objects may be IRIs or typed literals (e.g., strings, numbers, timestamps). A collection of triples forms an RDF graph in which resources and literals constitute nodes and predicates define directed edges. For example, a temperature reading can be represented as a measurement with a numeric value: \texttt{ex:\allowbreak{}reading1 saref:\allowbreak{}hasValue 21.5 (xsd:\allowbreak{}float)}. Such statements encode observed facts but do not, by themselves, specify domain constraints such as permitted units, class membership, or disjointness.
+
+\paragraph{Web Ontology Language.}
+OWL extends RDF with a description-logic semantics for expressing schema knowledge (TBox) and asserting instance facts (ABox). The core constructs relevant to this thesis include:
+
+\begin{description}
+    \item[Classes] represent sets of individuals sharing common characteristics. Classes are declared using \texttt{owl:Class} and identified by unique IRIs. For example, \texttt{saref:Measurement} denotes the class of measurement instances, while \texttt{saref:\allowbreak{}Temperature} can specialize this space to temperature-related measurements.
+
+    \item[Properties] define relationships between individuals (object properties) or between individuals and data values (datatype properties). Properties capture semantics such as \texttt{saref:hasValue} linking a measurement to a numerical literal, or a relation such as ``device emits measurement'' connecting two resources. Property axioms (e.g., domain, range, and functionality) constrain admissible links and enable consistency checks.
+
+    \item[Individuals] are instances of classes, representing concrete entities within the domain. An individual \texttt{ex:\allowbreak{}temp\_reading\_01} might be an instance of \texttt{saref:\allowbreak{}Temperature}.
+\end{description}
+
+For semantic annotation, OWL/RDF serve a dual role: they define a canonical label space for predicted concepts and provide structural constraints that help reason about granularity (coarse vs.\ fine classes) and compatibility (e.g., excluding logically inconsistent assignments).
+
+\subsection{Hierarchical Class Structure}
+\label{subsec:hierarchical_class_structure}
+
+Ontologies organize classes into taxonomic hierarchies through the subsumption relation \texttt{rdfs:subClassOf}. Subsumption states that every instance of a subclass is also an instance of its superclass:
+\begin{equation}
+    A \sqsubseteq B \iff \forall x: A(x) \rightarrow B(x)
+\end{equation}
+where $A \sqsubseteq B$ denotes that class $A$ is subsumed by class $B$.
+
+Subsumption induces a partial order over classes and supports reasoning at multiple levels of granularity. Properties and constraints stated at a superclass apply to all subclasses, which is essential when tables contain heterogeneous detail levels. For instance, a column labeled \texttt{Consumption} may only justify the coarse class \texttt{Energy\allowbreak{}Consumption}, whereas \texttt{kWh\_electricity} provides evidence for a finer class such as \texttt{Electricity\allowbreak{}Consumption}. The hierarchy \texttt{Electricity\allowbreak{}Consumption}~$\sqsubseteq$~\texttt{Energy\allowbreak{}Consumption}~$\sqsubseteq$~\texttt{Measurement} captures this refinement. Assigning \texttt{Electricity\allowbreak{}Consumption} implies membership in both superclasses. Moreover, OWL permits multiple inheritance (a class may have several superclasses), which is common in engineered ontologies and must be supported by annotation algorithms operating under incomplete evidence.
+
+\subsection{DAG Representation}
+\label{subsec:dag_representation}
+
+To enable algorithmic processing, the class taxonomy is abstracted as a Directed Acyclic Graph (DAG). Let $\mathcal{G} = (\mathcal{O}, \mathcal{E})$ denote the ontology graph, where:
+\begin{itemize}
+    \item $\mathcal{O} = \{o_1, o_2, \ldots, o_m\}$ is the set of ontology classes (nodes),
+    \item $\mathcal{E} \subseteq \mathcal{O} \times \mathcal{O}$ is the set of directed edges representing subsumption relations.
+\end{itemize}
+
+An edge $(o_i, o_j) \in \mathcal{E}$ indicates that $o_j$ is an immediate subclass of $o_i$, i.e., $o_j \sqsubseteq o_i$ with no intermediate class in the asserted (or reasoned) taxonomy. The DAG contains a unique root node, conventionally \texttt{owl:\allowbreak{}Thing}, from which all classes are reachable. Acyclicity ensures well-defined traversal semantics:
+\begin{equation}
+    \nexists \langle o_{i_1}, o_{i_2}, \ldots, o_{i_k} \rangle : (o_{i_j}, o_{i_{j+1}}) \in \mathcal{E} \land o_{i_1} = o_{i_k}
+\end{equation}
+
+Given $\mathcal{G}$, common operations used in semantic annotation can be defined precisely. The ancestor set of a class $o$ is:
+\begin{equation}
+    \text{Anc}(o) = \{u \in \mathcal{O} \mid u \rightarrow^\ast o\}
+\end{equation}
+where $u \rightarrow^\ast o$ denotes reachability along directed edges. The depth of $o$ is the length of a shortest path from \texttt{owl:Thing} to $o$ and provides a simple notion of granularity: larger depth typically corresponds to a more specific class. Consequently, the DAG representation enables efficient level-wise traversal, ancestor/descendant queries, and enumeration of root-to-leaf paths, which are central to constraining and validating predictions in the following chapters.
+
+\subsection{Energy Domain Ontologies}
+\label{subsec:energy_domain_ontologies}
+
+The energy domain has witnessed substantial ontology development efforts aimed at standardizing data interoperability across buildings, grids, and IoT platforms. The Smart Applications REFerence (SAREF) ontology, developed under the European Telecommunications Standards Institute (ETSI), provides a reference vocabulary for smart appliances and energy management~\cite{daniele2020saref}. SAREF defines core concepts such as \texttt{Device}, \texttt{Measurement}, \texttt{Property}, and \texttt{UnitOfMeasure}, and provides domain-oriented extensions (e.g., SAREF4ENER) that introduce finer-grained energy concepts.
+
+These ontologies encode domain knowledge essential for semantic annotation:
+\begin{itemize}
+    \item Standardized terminology for energy concepts, including consumption, generation, and storage,
+    \item Hierarchical taxonomies capturing domain-specific specialization relationships,
+    \item Formal axioms supporting automated consistency verification.
+\end{itemize}
+
+Concretely, SAREF-style modeling separates \emph{what} is observed (e.g., a power or consumption concept) from \emph{how} it is expressed in data (e.g., a numeric value with a unit). A table column such as \texttt{Power (kW)} therefore contains multiple semantic cues, i.e., a property concept (power), a measurement interpretation, and an implicit unit, that can be aligned with ontology classes and properties to resolve heterogeneity at scale. The next section formalizes how such cues are represented on the tabular side.
+
+% =============================================================================
+% Section 2.2: Tabular Data Model
+% =============================================================================
+
+\section{Tabular Data Model}
+\label{sec:tabular_data_model}
+
+Tabular data constitutes a prevalent format for structured information storage across enterprise systems, web platforms, and scientific repositories. Despite its apparent regularity, real-world tables exhibit substantial heterogeneity: headers are abbreviated or multilingual, units are embedded in column names, cells mix symbols and numbers (e.g., \texttt{12 kWh}), and missingness patterns differ across sources. This section formalizes the tabular data model and defines the semantic annotation tasks addressed in this thesis.
+
+\subsection{Table Structure}
+\label{subsec:table_structure}
+
+A table $t$ is a two-dimensional structure comprising rows and columns that organize data into a grid of cells. Formally, a table is defined as:
+\begin{equation}
+    t = (t_n, \mathcal{C}, \mathcal{R})
+\end{equation}
+where:
+\begin{description}
+    \item[$t_n$] denotes the table name or identifier,
+    \item[$\mathcal{C} = \{c_1, c_2, \ldots, c_j\}$] is the ordered set of columns,
+    \item[$\mathcal{R} = \{r_1, r_2, \ldots, r_k\}$] is the set of rows.
+\end{description}
+
+\paragraph{Columns.}
+Each column $c_i \in \mathcal{C}$ represents a semantic attribute and is characterized by:
+\begin{itemize}
+    \item A \textit{header} $h_i$: a string label describing the column's intended content,
+    \item A \textit{domain} $D_i$: the set of permissible values,
+    \item A \textit{data type} $\tau_i$: categorical, numeric, temporal, boolean, or mixed.
+\end{itemize}
+
+\paragraph{Rows.}
+Each row $r_k \in \mathcal{R}$ represents a single record or observation, containing values for each column:
+\begin{equation}
+    r_k = \langle v_{k,1}, v_{k,2}, \ldots, v_{k,j} \rangle
+\end{equation}
+where $v_{k,i}$ denotes the cell value at row $k$ and column $i$.
+
+\paragraph{Cells.}
+A cell $v_{k,i}$ is the atomic unit of tabular data, containing a single value at the intersection of row $r_k$ and column $c_i$. Cells may contain null or missing values, denoted $\bot$.
+
+In energy datasets, heterogeneity often arises from the interaction of these components. For example, the headers \texttt{Energy}, \texttt{Energy\_cons}, and \texttt{kWh} can refer to closely related concepts but differ in explicitness; likewise, values such as \texttt{1,234.5} and \texttt{1234.5} differ only in formatting but require normalization before reliable semantic interpretation.
+
+\subsection{Column Context}
+\label{subsec:column_context}
+
+Semantic annotation rarely succeeds from a header alone; robust interpretation requires additional evidence from the column content. Each column is therefore represented by a \textit{Column Context} object that encapsulates the information used for semantic inference. The column context $\gamma_i$ for column $c_i$ is defined as:
+\begin{equation}
+    \gamma_i = (h_i, \tau_i, S_i)
+\end{equation}
+where:
+\begin{description}
+    \item[$h_i$] is the column header, serving as the primary lexical semantic signal,
+    \item[$\tau_i$] is a coarse-grained type hint (Numeric, Categorical, Timestamp, Boolean, or Mixed) inferred from the observed cell patterns,
+    \item[$S_i$] is a bounded sample of representative values $S_i = \{v_{k_1,i}, v_{k_2,i}, \ldots, v_{k_n,i}\}$ where $n \ll |\mathcal{R}|$.
+\end{description}
+
+The sample values $S_i$ provide empirical evidence that disambiguates semantically similar headers and exposes implicit units or formats. For instance, a column named \texttt{Type} may refer to fuel types, building types, or measurement types; sample values such as \texttt{\{Natural Gas, Coal, Solar\}} clarify the intended semantics. Likewise, a header \texttt{Power} remains ambiguous until sample values reveal the scale and unit conventions (e.g., \texttt{\{0.8, 1.2, 2.4\}} versus \texttt{\{800 W, 1200 W, 2.4 kW\}}). This representation makes the sources of heterogeneity explicit and provides a uniform interface for downstream annotation algorithms.
+
+\subsection{Semantic Annotation Tasks}
+\label{subsec:semantic_annotation_tasks}
+
+Semantic Table Interpretation (STI) encompasses a family of tasks that associate table elements with concepts from a knowledge base or ontology~\cite{jimenez2020semtab}. Let $\mathcal{KB} = (\mathcal{E}, \mathcal{P}, \mathcal{O})$ denote a knowledge base that provides an entity set $\mathcal{E}$, a property vocabulary $\mathcal{P}$, and an ontology class set $\mathcal{O}$. STI is commonly decomposed into three annotation tasks:
+
+\paragraph{Cell Entity Annotation (CEA).}
+CEA disambiguates individual cell values to specific entities in a knowledge base. Given a cell value $v_{k,i}$, the task identifies the corresponding entity $e \in \mathcal{E}$ such that:
+\begin{equation}
+    \text{CEA}(v_{k,i}) = e \quad \text{where} \quad e \in \mathcal{E}
+\end{equation}
+For example, the cell value ``Berlin'' might be linked to the entity \texttt{dbr:Berlin} in DBpedia.
+
+\paragraph{Column Property Annotation (CPA).}
+CPA identifies semantic relations between pairs of columns. Given columns $c_i$ and $c_j$, CPA determines the property $p$ that relates entities in $c_i$ to values in $c_j$:
+\begin{equation}
+    \text{CPA}(c_i, c_j) = p \quad \text{where} \quad p \in \mathcal{P}
+\end{equation}
+For instance, columns \texttt{City} and \texttt{Country} might be annotated with the property \texttt{dbo:country}.
+
+\paragraph{Column Type Annotation (CTA).}
+CTA assigns an ontological class to an entire column based on its header and content. The task maps each column $c_i$ to one or more classes from a target ontology:
+\begin{equation}
+    \text{CTA}(c_i) = \{o \in \mathcal{O} \mid \text{column } c_i \text{ represents instances of class } o\}
+\end{equation}
+
+CTA is the primary focus of this thesis. In energy datasets, columns frequently represent domain-specific concepts such as \textit{Fuel Type}, \textit{Energy Source}, \textit{Tariff Category}, or \textit{Consumption} that correspond naturally to ontological class definitions but appear under highly variable surface forms. CTA therefore requires models that can integrate weak signals from $h_i$, $\tau_i$, and $S_i$, select an appropriate level of granularity in a class hierarchy, and remain robust under long-tail heterogeneity. The next section summarizes why LLMs provide an attractive substrate for this form of semantic inference.
+
+% =============================================================================
+% Section 2.3: Large Language Models
+% =============================================================================
+
+\section{Large Language Models}
+\label{sec:large_language_models}
+
+Large Language Models (LLMs) have reshaped natural language processing. They demonstrate strong capabilities in language understanding, controlled generation, and zero-shot and few-shot generalization. For semantic annotation, these models can interpret natural language headers, exploit contextual cues from sample values, and map between lexical realizations and domain concepts without task-specific feature engineering. This section summarizes the architectural foundations and training paradigms that enable LLMs to support semantic reasoning under heterogeneous tabular input.
+
+\subsection{Transformer Architecture}
+\label{subsec:transformer_architecture}
+
+The Transformer architecture, introduced by Vaswani et al. (2017)~\cite{vaswani2017attention}, constitutes the foundational building block of modern LLMs. Unlike recurrent architectures that process sequences sequentially, Transformers employ self-attention mechanisms to capture dependencies across arbitrary positions in parallel.
+
+\paragraph{Self-Attention Mechanism.}
+The self-attention operation computes a weighted representation of input tokens, where weights reflect pairwise relevance. Given an input sequence $X = (x_1, x_2, \ldots, x_n)$ with embeddings $H \in \mathbb{R}^{n \times d}$, the attention output is computed as:
+\begin{equation}
+    \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}\right)V
+\end{equation}
+where $Q = HW_Q$, $K = HW_K$, and $V = HW_V$ are linear projections representing queries, keys, and values respectively, and $d_k$ is the key dimension.
+
+The scaling factor $\sqrt{d_k}$ prevents dot products from growing excessively large, ensuring stable gradient flow. Multi-head attention extends this mechanism by computing multiple attention functions in parallel:
+\begin{equation}
+    \text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W_O
+\end{equation}
+where each head $\text{head}_i = \text{Attention}(QW_Q^i, KW_K^i, VW_V^i)$ captures different aspects of token relationships.
+
+\paragraph{Position Encoding.}
+Since self-attention is permutation-invariant, positional information is injected through position encodings added to input embeddings. Original Transformers employ sinusoidal encodings, while modern variants use learned or rotary position embeddings.
+
+For tabular semantic annotation, self-attention is particularly useful because it enables joint conditioning on heterogeneous evidence within a single prompt (header tokens, sampled values, and optional table metadata), rather than relying on a rigid pipeline of independent feature extractors.
+
+\subsection{Pre-training Paradigms}
+\label{subsec:pretraining_paradigms}
+
+LLMs acquire broad linguistic knowledge through pre-training on massive text corpora, learning statistical patterns that encode syntactic, semantic, and world knowledge.
+
+\paragraph{Autoregressive Language Modeling.}
+The GPT family of models~\cite{radford2018improving} employs autoregressive (causal) language modeling, where the objective is to predict the next token given preceding context:
+\begin{equation}
+    \mathcal{L}_{\text{AR}} = -\sum_{t=1}^{T} \log P(x_t \mid x_1, x_2, \ldots, x_{t-1}; \theta)
+\end{equation}
+Autoregressive pre-training supports coherent generation. At sufficient scale, subsequent alignment and prompting often yield strong instruction-following behavior.
+
+\paragraph{Masked Language Modeling.}
+BERT and its variants~\cite{devlin2019bert} employ bidirectional pre-training through masked language modeling (MLM), where random tokens are masked and the model predicts them from surrounding context:
+\begin{equation}
+    \mathcal{L}_{\text{MLM}} = -\sum_{i \in \mathcal{M}} \log P(x_i \mid x_{\setminus \mathcal{M}}; \theta)
+\end{equation}
+where $\mathcal{M}$ denotes the set of masked positions. This bidirectional context enables richer representations for understanding tasks.
+
+\paragraph{Scale and Emergence.}
+Contemporary LLMs, including GPT-4, Claude, and open source alternatives, contain billions of parameters and are trained on trillion-token corpora. At this scale, models exhibit emergent capabilities, i.e., abilities not explicitly programmed but arising from the training process, including complex reasoning, instruction following, and domain adaptation.
+
+These training regimes yield representations that can be repurposed for semantic annotation with minimal task-specific supervision, particularly when prompts expose the relevant evidence in a structured form.
+
+\subsection{In-Context Learning}
+\label{subsec:in_context_learning}
+
+In-context learning (ICL) enables LLMs to perform new tasks by conditioning on examples provided within the input prompt, without requiring parameter updates~\cite{brown2020language}.
+
+\paragraph{Zero-Shot Learning.}
+In zero-shot settings, the model performs tasks based solely on natural language instructions without examples:
+\begin{equation}
+    P(y \mid \text{instruction}, x)
+\end{equation}
+For instance, an LLM can classify text sentiment given only the instruction ``Determine whether the following text expresses positive or negative sentiment''.
+
+\paragraph{Few-Shot Learning.}
+Few-shot learning augments instructions with demonstration examples:
+\begin{equation}
+    P(y \mid \text{instruction}, (x_1, y_1), \ldots, (x_k, y_k), x)
+\end{equation}
+where $(x_i, y_i)$ pairs illustrate the desired input-output mapping. Demonstrations often improve reliability on domain-specific tasks without fine-tuning.
+
+\paragraph{Prompt Engineering.}
+Prompt formulation substantially influences LLM performance. Effective prompts typically combine explicit task specification with structured output constraints and sufficient context to ground the model in domain knowledge (e.g., candidate ontology labels and short definitions). For semantic annotation, prompts can further benefit from decomposing the problem into interpretable steps (e.g., header interpretation, value-based disambiguation, and final class selection), which improves consistency under heterogeneous inputs.
+
+\subsection{LLMs as Semantic Reasoning Engines}
+\label{subsec:llm_semantic_reasoning}
+
+Taken together, these capabilities position LLMs as semantic reasoning engines for knowledge-intensive tasks. Three properties are particularly relevant for semantic annotation:
+
+\paragraph{Semantic Understanding.}
+Pre-training on diverse corpora enables recognition of domain concepts even when expressed through non-standard terminology. An LLM can infer that \texttt{kWh\_consumed} likely refers to energy consumption despite abbreviated, non-canonical naming.
+
+\paragraph{Contextual Disambiguation.}
+Attention mechanisms allow LLMs to integrate column headers, sample values, and table context simultaneously, resolving semantic ambiguity through holistic processing that mirrors human reasoning.
+
+\paragraph{Adaptive Reasoning.}
+Unlike rigid rule-based systems, LLMs generalize to novel inputs without explicit reprogramming, which is a property particularly valuable for handling the long-tail heterogeneity characteristic of real-world tabular data.
+
+However, direct application of LLMs to semantic annotation introduces challenges including hallucination, output inconsistency, and the lack of structural guarantees with respect to the target ontology. Consequently, the following chapters develop a constrained, ontology-aware framework that leverages LLM flexibility while enforcing taxonomy-consistent outputs.

@@ -1,0 +1,103 @@
+% Copyright 2009 by Rainer Finocchiaro
+% Copyright 2015 by Simon Pickartz
+%
+%%*****************************************
+%%*                                       *
+%%* RWTH Aachen University                *
+%%*                                       *
+%%* Institute for Automation of Complex   *
+%%* Power Systems                         *
+%%*                                       *
+%%* Based on the thesis template          *
+%%* of the Chair for Operating Systems    *
+%%* created by Rainer Finocchiaro         *
+%%*                                       *
+%%*****************************************
+%%
+% Template for Master and Bachelor Theses at ACS (based on scrbook)
+
+\documentclass[%
+     bibliography=totoc,      % Add bibliography to toc
+%     english,ngerman         % Main language: German; second Lang: English
+    ngerman,english           % Main language: English; second Lang: German
+]{template/acsthesis}
+
+%%%%%%%%%% Packages %%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{booktabs}  % 支持 \toprule, \midrule, \cmidrule, \bottomrule
+\usepackage{multirow}  % 支持 \multirow
+\usepackage{makecell}  % 支持表格单元格内换行
+\usepackage{blindtext}        % Only necessary in this example document
+\usepackage[backend=biber, style=numeric, alldates=comp]{biblatex} % The bibliography
+\usepackage{scrhack}          % Removes warning about deprecated float@listhead due to \lstlistoflistings
+                              % This should be loaded last since it redefines some commands
+\pgfplotsset{compat=1.15}     % Set minimum version of pgfplotset to remove warning.
+                              % If you have an older version installed, then change the value here. 
+
+%\usepackage[outputdir=build]{minted} % Used for better code highlighting than lstlistings. Requires pygments to be installed
+
+\addbibresource{bibliography.bib} % remove the ../ if you don't compile with latexmk and outdir
+
+%%%%%%%%%% Title Page configuration %%%%%%%%%%
+\title{Ontology-driven Semantic Annotation\\ using Large Language Models}
+\titleDE{Ontologiebasiertes semantisches Annotation\\ unter Verwendung großer Sprachmodelle}
+\thesisType{master}         % 'bachelor' or 'master'
+\author{Keni Chen}
+\matrNr{364776}
+\addsupervisor{Zhiyu Pan, Dr.-Ing.}
+% In case of more than one institute (e.g., external thesis)
+%\addinstitute{acs}{Institute for Automation of Complex Power Systems}{(')}
+%\addinstitute{osl}{Open Systems Laboratory, Indiana University}{(*)}
+%\addsupervisor[acs]{Peter Pan, M.Sc.}
+%\addsupervisor[osl]{Dipl.-Ing. Mark Musterassi} 			% Betreuer
+%\addsecondreferee{Dr.\,rer.\,nat. Unknown} 			% Zweitgutachter
+
+% In case of a second referee
+%\addsecondreferee{Dr.\,rer.\,nat. Unknown} 				% Second referee
+
+
+\keywordsDE{Semantische Annotation, Große Sprachmodelle, Ontologie, Spaltentyp-Annotation, Ensemble-Entscheidungsfindung.
+}
+\keywordsEN{Semantic Annotation, Large Language Models, Ontology, Column Type Annotation, Ensemble Decision-Making.
+}
+
+\printSignatures              % print signature lines on title page for the registration
+
+%自行添加的包
+\usepackage{tabularx}
+\usepackage[ruled,vlined,linesnumbered]{algorithm2e}
+% 手动将算法标题改为英文
+\SetAlgorithmName{Algorithm}{algorithm}{List of Algorithms}
+% 定义并行 for 循环
+\SetKwFor{ForPar}{for}{do in parallel}{end forpar}
+\usepackage{amsmath} 
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tikz}
+\usetikzlibrary{shadows, positioning, fit, backgrounds, shapes, decorations.markings}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\include{chapters/Introduction}
+\include{chapters/Preliminaries}
+\include{chapters/RelatedWork}
+\include{chapters/Methods}
+\include{chapters/System}
+\include{chapters/Evaluation}
+\include{chapters/Conclusion}
+
+% The appendix is optional. Remove these lines if no appendix is needed.
+\appendix
+\appendixintro
+\include{appendices/Appendix}
+
+\listoffigures
+\listoftables
+\lstlistoflistings
+
+\end{document}

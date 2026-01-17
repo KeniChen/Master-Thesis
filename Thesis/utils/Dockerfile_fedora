@@ -1,0 +1,20 @@
+FROM fedora:latest
+
+RUN dnf update -y && dnf install -y \
+        git \
+        latexmk \
+        make \
+        texlive-acronym \
+        texlive-blindtext \
+        texlive-cm-unicode \
+        texlive-collection-langgerman \
+        texlive-float \
+        texlive-hyperxmp \
+        texlive-minted \
+        texlive-pgfplots \
+        texlive-relsize \
+        texlive-scheme-basic \
+        texlive-siunitx
+
+
+ENTRYPOINT /bin/bash
