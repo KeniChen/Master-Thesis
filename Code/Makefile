@@ -52,7 +52,9 @@ venv: ## Ensure Python 3.12 venv is created via uv
 
 install: ## Install all dependencies
 	@echo "Installing backend dependencies..."
-	@cd backend && . .venv/bin/activate && uv sync --index-url https://pypi.tuna.tsinghua.edu.cn/simple
+	@cd backend && . .venv/bin/activate && uv sync
+	@cd backend && . .venv/bin/activate && uv pip install -e .
+	# @cd backend && . .venv/bin/activate && uv sync --index-url https://pypi.tuna.tsinghua.edu.cn/simple
 	@echo "Installing frontend dependencies..."
 	@cd frontend && $(PNPM) install
 	@echo "Done."

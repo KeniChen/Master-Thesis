@@ -62,6 +62,9 @@ npm-debug.log*
 # ====================
 # Uncomment if you don't want to commit data files
 data/config.json
+
+data/ontologies/.cache
+data/ontologies/registry.json
 data/tables/real/*
 data/tables/real/registry.json
 data/labels/real/*
@@ -69,7 +72,7 @@ data/labels/real/registry.json
 data/batches/*
 data/batches/registry.json
 data/runs/*
-
+data/run/registry.json
 
 # Ignore experiment run outputs, but keep batch.yaml configs
 experiments/*/run_*.json
