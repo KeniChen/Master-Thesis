@@ -5,9 +5,40 @@
 - `frontend/`: Next.js web UI.
 - `data/`: ontologies, tables, configs, and experiment outputs.
 
-## Prereqs
-- `uv`
-- Node.js 24 and `pnpm`
+## Installation
+
+This project uses [uv](https://docs.astral.sh/uv/) for dependency management. Install it first:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+For the frontend, you need [`Node.js`](https://nodejs.org/en/download) (v24) and `pnpm`:
+
+```bash
+# Download and install nvm:
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+# in lieu of restarting the shell
+\. "$HOME/.nvm/nvm.sh"
+# Download and install Node.js:
+nvm install 24
+# Verify the Node.js version:
+node -v # Should print "v24.11.1".
+# Verify npm version:
+npm -v # Should print "11.6.2".
+# Install pnpm
+npm install -g pnpm
+```
+
+### Using Makefile (recommended)
+
+```bash
+# Setup environment and install dependencies
+make setup
+
+# Only install dependencies
+make install
+```
 
 ## Quick start
 
